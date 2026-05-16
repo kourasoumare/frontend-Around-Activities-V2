@@ -1,0 +1,334 @@
+@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap");
+
+/* ── Variables CSS ───────────────────────────────────────── */
+:root {
+  --tc: #9f3ac4;
+  --tc-light: #F0D5C8;
+  --tc-dark: #b240bc;
+
+  --bg: #d1a7f1;
+  --bg-2: #F2EDE4;
+  --bg-3: #b866de;
+
+  --ink: #000000;
+  --ink-2: #4A4540;
+  --ink-3: #ffffff;
+
+  --font-head: "Playfair Display", Georgia, serif;
+  --font-body: "DM Sans", system-ui, sans-serif;
+}
+
+/* ── Base ────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Typography ──────────────────────────────────────────── */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-head);
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  padding: 0.625rem 1.25rem;
+
+  border: none;
+  border-radius: 0.75rem;
+
+  cursor: pointer;
+  text-decoration: none;
+
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 500;
+
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: var(--tc);
+  color: rgb(255, 255, 255);
+}
+
+.btn-primary:hover {
+  background-color: var(--tc-dark);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--ink);
+  border: 1.5px solid var(--bg-3);
+}
+
+.btn-secondary:hover {
+  border-color: var(--ink-2);
+  background-color: var(--bg-2);
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: var(--tc);
+  border: 1.5px solid var(--tc);
+}
+
+.btn-outline:hover {
+  background-color: var(--tc-light);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--tc);
+
+  border: none;
+  padding: 0;
+
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.btn-lg {
+  padding: 0.875rem 2rem;
+  font-size: 1rem;
+  border-radius: 9999px;
+}
+
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  border-radius: 0.5rem;
+}
+
+/* ── Forms ───────────────────────────────────────────────── */
+.form-input {
+  width: 100%;
+
+  padding: 0.75rem 1rem;
+
+  border: 1.5px solid var(--bg-3);
+  border-radius: 0.75rem;
+
+  outline: none;
+
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+
+  color: var(--ink);
+  background-color: var(--bg);
+
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
+}
+
+.form-input:focus {
+  border-color: var(--tc);
+  background-color: white;
+}
+
+.form-label {
+  display: block;
+
+  margin-bottom: 0.375rem;
+
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+
+  color: var(--ink-2);
+}
+
+/* ── Cards ───────────────────────────────────────────────── */
+.card {
+  background-color: white;
+
+  border: 1px solid var(--bg-3);
+  border-radius: 1.5rem;
+
+  padding: 1.5rem;
+}
+
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+
+  border-color: var(--tc-light);
+
+  box-shadow: 0 12px 40px rgba(255, 248, 248, 0.08);
+}
+
+/* ── Category pills ──────────────────────────────────────── */
+.cat-pill-active {
+  background-color: var(--tc);
+  color: white;
+
+  padding: 0.375rem 1rem;
+
+  border: none;
+  border-radius: 9999px;
+
+  cursor: pointer;
+
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.cat-pill-inactive {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+
+  padding: 0.375rem 1rem;
+
+  border: none;
+  border-radius: 9999px;
+
+  cursor: pointer;
+
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  transition: background-color 0.2s ease;
+}
+
+.cat-pill-inactive:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* ── Tags ────────────────────────────────────────────────── */
+.interest-tag {
+  background-color: var(--tc-light);
+  color: var(--tc-dark);
+
+  padding: 0.375rem 0.75rem;
+
+  border-radius: 9999px;
+
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* ── Section title ───────────────────────────────────────── */
+.section-title {
+  margin-bottom: 1.25rem;
+
+  font-family: var(--font-head);
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+
+  color: var(--ink);
+}
+
+/* ── Meta pill ───────────────────────────────────────────── */
+.meta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+
+  padding: 0.375rem 0.75rem;
+
+  border-radius: 9999px;
+
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.8);
+
+  font-size: 0.75rem;
+}
+
+/* ── Tabs ────────────────────────────────────────────────── */
+.tab-btn {
+  flex: 1;
+
+  padding: 0.5rem;
+
+  border: none;
+  border-radius: 0.5rem;
+
+  background: transparent;
+
+  cursor: pointer;
+
+  text-align: center;
+
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 500;
+
+  color: var(--ink-3);
+
+  transition: all 0.2s ease;
+}
+
+.tab-btn-active {
+  background-color: white;
+  color: var(--ink);
+
+  font-weight: 600;
+
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Animations ──────────────────────────────────────────── */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.3s ease forwards;
+}
+
+.page-enter {
+  animation: fadeUp 0.3s ease forwards;
+}
