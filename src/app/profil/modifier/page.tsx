@@ -70,11 +70,11 @@ export default function ModifierProfilPage() {
                   key={tag}
                   type="button"
                   onClick={() => toggleInterest(tag)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium border-[1.5px] transition-all duration-200 ${
-                    selectedInterests.includes(tag)
-                      ? "border-tc bg-tc-light text-tc-dark"
-                      : "border-bg-3 bg-bg text-ink-2 hover:border-ink-3"
-                  }`}
+                  className={`px-4 py-2 rounded-full text-sm font-medium border-2 transition-all duration-200 ${
+  selectedInterests.includes(tag)
+    ? "border-purple-700 bg-purple-700 text-white scale-105 shadow-md"
+    : "border-black bg-white text-black hover:border-purple-700 hover:text-purple-700"
+}`}
                 >
                   {tag}
                 </button>

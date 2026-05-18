@@ -7,7 +7,7 @@ export default function LandingPage() {
       <PublicNavbar />
 
       {/* ── Hero ────────────────────────────────────────────────────── */}
-      <section className="bg-ink text-black min-h-[90vh] flex items-center relative overflow-hidden px-8 py-20">
+      <section className="bg-ink flex items-center relative overflow-hidden px-8 pt-16 pb-16">
         {/* Background glow */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_70%_50%,rgba(196,96,58,0.25)_0%,transparent_70%)]" />
 
@@ -68,55 +68,67 @@ export default function LandingPage() {
       </section>
 
       {/* ── Problem section ─────────────────────────────────────────── */}
-      <section className="py-30 px-8 max-w-6xl mx-auto">
+      <section className="py-20 px-5 max-w-6xl mx-auto">
         <div className="flex items-center gap-2 text-tc text-xs font-semibold tracking-widest uppercase mb-4">
-          <div className="w-7 h-0.5 bg-tc" />
+          <div className="w-3 h-0.5 bg-tc" />
           Le problème
         </div>
-        <h2 className="font-head text-4xl md:text-5xl tracking-tight leading-tight mb-4">
+        <h2 className="font-head text-4xl md:text-5xl tracking-tight leading-tight mb-5">
           Arriver quelque part<br />ne devrait pas être seul.
         </h2>
-        <p className="text-ink-2 text-lg leading-relaxed max-w-xl mb-14">
+        <p className="text-ink-2 text-lg leading-relaxed max-w-xl mb-16">
           Des milliers d&apos;étudiants et jeunes actifs déménagent chaque année.
           La plupart passent leurs premiers mois dans l&apos;ennui et la solitude.
         </p>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-3 gap-10 items-start">
           {[
-            {
-              num: "01",
-              title: "Tu ne sais pas quoi faire",
-              text: "Les grandes villes débordent d'activités, mais sans guidance ça paralyse. Trop de choix, pas de direction.",
-            },
-            {
-              num: "02",
-              title: "Tu ne sais pas avec qui",
-              text: "Google te donne des idées, pas des compagnons. Tes amis sont ailleurs. Les apps existantes sont trop formelles.",
-            },
-            {
-              num: "03",
-              title: "Rencontrer des gens, c'est compliqué",
-              text: "Les réseaux sociaux sont bruyants, Meetup est rigide. Il n'existait pas d'espace dédié aux jeunes.",
-            },
+  {
+    num: "01",
+    title: "Tu ne sais pas quoi faire",
+    text: "Les grandes villes débordent d'activités, mais sans guidance ça paralyse. Trop de choix, pas de direction.",
+    image: "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=600&q=80",
+  },
+  {
+    num: "02",
+    title: "Tu ne sais pas avec qui",
+    text: "Google te donne des idées, pas des compagnons. Tes amis sont ailleurs. Les apps existantes sont trop formelles.",
+    image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&q=80",
+  },
+  {
+    num: "03",
+    title: "Rencontrer des gens, c'est compliqué",
+    text: "Les réseaux sociaux sont bruyants, Meetup est rigide. Il n'existait pas d'espace dédié aux jeunes.",
+    image: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=600&q=80",
+  },
           ].map((item) => (
             <div
               key={item.num}
-              className="bg-white border border-bg-3 rounded-2xl p-8 hover:-translate-y-1 hover:shadow-lg hover:border-tc-light transition-all duration-300"
+              className="group self-start bg-white border border-bg-3 rounded-2xl overflow-hidden hover:-translate-y-1 hover:shadow-lg hover:border-tc-light transition-all duration-300"
             >
-              <div className="font-head text-6xl text-tc-light font-black leading-none mb-3">
-                {item.num}
+              <div className="h-0 group-hover:h-44 overflow-hidden transition-all duration-500">
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="w-full h-44 object-cover"
+                />
               </div>
-              <h3 className="font-semibold text-lg mb-3">{item.title}</h3>
-              <p className="text-sm text-ink-2 leading-relaxed">{item.text}</p>
+              <div className="p-10">
+                <div className="font-head text-7xl text-tc-light group-hover:text-tc font-black leading-none mb-8 transition-colors duration-300">
+                  {item.num}
+                </div>
+                <h3 className="font-semibold text-xl mb-4">{item.title}</h3>
+                <p className="text-sm text-ink-2 leading-relaxed">{item.text}</p>
+              </div>
             </div>
           ))}
         </div>
       </section>
 
       {/* ── How it works ────────────────────────────────────────────── */}
-      <section className="bg-ink py-24 px-8">
+      <section className="bg-ink pt-5 pb-32 px-8">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center gap-2 text-tc text-xs font-semibold tracking-widest uppercase mb-4">
+          <div className="flex items-center gap-0 text-tc text-xs font-semibold tracking-widest uppercase mb-3">
             <div className="w-7 h-0.5 bg-tc" />
             Comment ça marche
           </div>
@@ -124,30 +136,42 @@ export default function LandingPage() {
             Trois étapes,<br />mille rencontres.
           </h2>
 
-          <div className="grid md:grid-cols-3 gap-10">
+          <div className="grid md:grid-cols-3 gap-10 items-start">
             {[
-              {
-                num: "1",
-                title: "Cherche par intérêt",
-                text: "Parcours nos catégories : Sport, Art, Cuisine, Musique, Tech… Trouve ce qui t'inspire.",
-              },
-              {
-                num: "2",
-                title: "Rejoins ou crée un groupe",
-                text: "Rejoins un groupe existant ou lance le tien. Tu définis la date, le lieu et l'ambiance.",
-              },
-              {
-                num: "3",
-                title: "Rencontre des personnes",
-                text: "Vas-y, passe un bon moment, et construis ton réseau naturellement.",
-              },
+  {
+    num: "1",
+    title: "Cherche par intérêt",
+    text: "Parcours nos catégories : Sport, Art, Cuisine, Musique, Tech… Trouve ce qui t'inspire.",
+    image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=600&q=80",
+  },
+  {
+    num: "2",
+    title: "Rejoins ou crée un groupe",
+    text: "Rejoins un groupe existant ou lance le tien. Tu définis la date, le lieu et l'ambiance.",
+    image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&q=80",
+  },
+  {
+    num: "3",
+    title: "Rencontre des personnes",
+    text: "Vas-y, passe un bon moment, et construis ton réseau naturellement.",
+    image: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=600&q=80",
+  },
             ].map((step) => (
-              <div key={step.num} className="flex flex-col gap-4">
-                <div className="w-12 h-20 rounded-xl bg-tc flex items-center justify-center font-head text-2xl font-black text-black">
-                  {step.num}
+              <div key={step.num} className="group self-start bg-white border border-bg-3 rounded-2xl overflow-hidden hover:-translate-y-1 hover:shadow-lg hover:border-tc-light transition-all duration-300">
+                <div className="h-0 group-hover:h-44 overflow-hidden transition-all duration-500">
+                  <img
+                    src={step.image}
+                    alt={step.title}
+                    className="w-full h-44 object-cover"
+                  />
                 </div>
-                <h3 className="font-semibold text-black text-lg">{step.title}</h3>
-                <p className="text-black/60 text-sm leading-relaxed">{step.text}</p>
+                <div className="p-10">
+                  <div className="font-head text-7xl text-tc-light group-hover:text-tc font-black leading-none mb-8 transition-colors duration-300">
+                    {step.num}
+                  </div>
+                  <h3 className="font-semibold text-ink text-xl mb-4">{step.title}</h3>
+                  <p className="text-ink-2 text-sm leading-relaxed">{step.text}</p>
+                </div>
               </div>
             ))}
           </div>

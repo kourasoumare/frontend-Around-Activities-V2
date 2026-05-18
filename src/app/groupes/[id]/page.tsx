@@ -38,7 +38,7 @@ export default function GroupDetailPage() {
             ← Retour à {activity?.title ?? "l'activité"}
           </Link>
 
-          <h1 className="font-head text-4xl font-black text-white tracking-tight leading-tight mb-5">
+          <h1 className="font-head text-4xl font-black text-black tracking-tight leading-tight mb-5">
             {group.name}
           </h1>
 

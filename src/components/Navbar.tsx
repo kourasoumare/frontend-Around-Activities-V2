@@ -6,9 +6,10 @@ import { usePathname } from "next/navigation";
 export function PublicNavbar() {
   return (
     <nav className="flex items-center justify-between px-8 py-4 bg-white border-b border-bg-3 sticky top-0 z-50">
-      <Link href="/" className="font-head text-2xl font-black text-tc tracking-tight">
-        Around<span className="text-ink">.</span>
-      </Link>
+      <Link href="/" className="flex items-center gap-3">
+  <img src="/logo.png" alt="Around Activities" className="h-10 w-auto" />
+  <span className="font-head text-xl font-black text-ink tracking-tight">Around Activities</span>
+</Link>
       <div className="flex items-center gap-4">
         <Link href="/connexion" className="text-sm font-medium text-ink-2 hover:text-ink px-3 py-1.5 rounded-xl hover:bg-bg-2 transition-all">
           Se connecter
@@ -34,9 +35,10 @@ export function AppNavbar() {
     <>
       {/* Desktop top navbar */}
       <nav className="hidden md:flex items-center justify-between px-8 py-4 bg-white border-b border-bg-3 sticky top-0 z-50">
-        <Link href="/home" className="font-head text-2xl font-black text-tc tracking-tight">
-          Around<span className="text-ink">.</span>
-        </Link>
+        <Link href="/home" className="flex items-center gap-3">
+  <img src="/logo.png" alt="Around Activities" className="h-10 w-auto" />
+  <span className="font-head text-xl font-black text-ink tracking-tight">Around Activities</span>
+</Link>
         <div className="flex items-center gap-2">
           {navItems.map((item) => (
             <Link
