@@ -25,10 +25,19 @@ export default function MesGroupesPage() {
       {/* ── Header ────────────────────────────────────────────────── */}
       <div className="bg-ink px-8 pt-10 pb-20">
         <div className="max-w-3xl mx-auto">
-          <h1 className="font-head text-4xl font-black text-black tracking-tight">
-            Mes groupes
-          </h1>
-          <p className="text-black text-sm mt-2">
+          <h1 className="font-head text-4xl font-black text-white tracking-tight">
+  Mes{" "}
+  <span
+    style={{
+      background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+    }}
+  >
+    groupes
+  </span>
+</h1>
+          <p className="text-white text-sm mt-2">
             Suis et gère toutes tes sorties
           </p>
         </div>

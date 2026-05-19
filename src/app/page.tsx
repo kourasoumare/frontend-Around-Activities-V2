@@ -68,21 +68,34 @@ export default function LandingPage() {
 
       {/* ── Problem section ─────────────────────────────────────────── */}
       <section className="py-20 px-5 max-w-6xl mx-auto">
-        <div className="flex items-center gap-2 text-tc text-xs font-semibold tracking-widest uppercase mb-4">
-          <div className="w-3 h-0.5 bg-tc" />
-          Le problème
-        </div>
-        <h2 className="font-head text-4xl md:text-5xl tracking-tight leading-tight mb-8">
-  <span style={{ color: "#FAF7F2" }}>Arriver quelque part<br />ne devrait </span>
-  <span style={{ background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>pas être seul.</span>
-</h2>
-        <p className="text-ink-2 text-lg leading-relaxed max-w-xl mb-16">
-          Des milliers d&apos;étudiants et jeunes actifs déménagent chaque année.
-          La plupart passent leurs premiers mois dans l&apos;ennui et la solitude.
-        </p>
 
-        <div className="grid md:grid-cols-3 gap-10 items-start">
-          {[
+  <div className="flex items-center gap-2 text-white text-xs font-semibold tracking-widest uppercase mb-4">
+    <div className="w-3 h-0.5 bg-tc" />
+    Le problème
+  </div>
+
+  <h2 className="font-head text-4xl md:text-5xl tracking-tight leading-tight mb-8">
+    <span style={{ color: "#FAF7F2" }}>
+      Arriver quelque part<br />ne devrait{" "}
+    </span>
+    <span
+      style={{
+        background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)",
+        WebkitBackgroundClip: "text",
+        WebkitTextFillColor: "transparent",
+      }}
+    >
+      pas être seul.
+    </span>
+  </h2>
+
+  <p className="text-white text-lg leading-relaxed max-w-xl mb-16">
+    Des milliers d&apos;étudiants et jeunes actifs déménagent chaque année.
+    La plupart passent leurs premiers mois dans l&apos;ennui et la solitude.
+  </p>
+
+  <div className="grid md:grid-cols-3 gap-10 items-start">
+    {[
   {
     num: "01",
     title: "Tu ne sais pas quoi faire",
@@ -130,10 +143,10 @@ export default function LandingPage() {
       {/* ── How it works ────────────────────────────────────────────── */}
       <section className="bg-ink pt-5 pb-32 px-8">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center gap-0 text-tc text-xs font-semibold tracking-widest uppercase mb-3">
-            <div className="w-7 h-0.5 bg-tc" />
-            Comment ça marche
-          </div>
+          <div className="flex items-center gap-0 text-white text-xs font-semibold tracking-widest uppercase mb-3">
+  <div className="w-7 h-0.5 bg-tc" />
+  Comment ça marche
+</div>
           <h2 className="font-head text-4xl md:text-5xl tracking-tight leading-tight mb-20">
   <span style={{ color: "#FAF7F2" }}>Trois étapes,<br /></span>
   <span style={{ background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>mille rencontres.</span>

@@ -23,10 +23,12 @@ export default function ProfilPage() {
           >
             {initials}
           </div>
-          <h1 className="font-head text-3xl font-black text-black tracking-tight mb-1">
+
+          <h1 className="font-head text-3xl font-black text-white tracking-tight mb-1">
             {user.firstName} {user.lastName}
           </h1>
-          <p className="text-black text-sm flex items-center gap-1">
+
+          <p className="text-white text-sm flex items-center gap-1">
             📍 {user.city} · Membre depuis {user.createdAt}
           </p>
         </div>
@@ -34,6 +36,7 @@ export default function ProfilPage() {
 
       {/* ── Content ───────────────────────────────────────────────── */}
       <div className="max-w-3xl mx-auto px-8 -mt-10 relative z-10 space-y-6 pb-10">
+
         {/* Interests */}
         <div className="card">
           <div className="flex items-center justify-between mb-4">
@@ -42,6 +45,7 @@ export default function ProfilPage() {
               ✏️ Modifier
             </Link>
           </div>
+
           <div className="flex flex-wrap gap-2">
             {user.interests.map((tag) => (
               <span key={tag} className="interest-tag">
@@ -55,16 +59,22 @@ export default function ProfilPage() {
         <div className="card">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold">Groupes récents</h2>
-            <Link href="/mes-groupes" className="text-xs text-tc font-semibold hover:underline">
+            <Link
+              href="/mes-groupes"
+              className="text-xs text-tc font-semibold hover:underline"
+            >
               Voir tout →
             </Link>
           </div>
+
           <div className="space-y-3">
             {groups.map((group) => (
               <Link key={group.id} href={`/groupes/${group.id}`}>
                 <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-bg transition-colors">
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm text-ink truncate">{group.name}</p>
+                    <p className="font-medium text-sm text-ink truncate">
+                      {group.name}
+                    </p>
                     <p className="text-xs text-ink-3">
                       {group.activity} · {group.date}
                     </p>
@@ -79,13 +89,33 @@ export default function ProfilPage() {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4">
           {[
-            { label: "Groupes rejoints", value: MY_GROUPS.filter((g) => !g.isOrganizer).length },
-            { label: "Groupes créés", value: MY_GROUPS.filter((g) => g.isOrganizer).length },
-            { label: "Intérêts", value: user.interests.length },
+            {
+              label: "Groupes rejoints",
+              value: MY_GROUPS.filter((g) => !g.isOrganizer).length,
+              color: "#C4603A",
+            },
+            {
+              label: "Groupes créés",
+              value: MY_GROUPS.filter((g) => g.isOrganizer).length,
+              color: "#B8722E",
+            },
+            {
+              label: "Intérêts",
+              value: user.interests.length,
+              color: "#F0A860",
+            },
           ].map((stat) => (
-            <div key={stat.label} className="bg-bg-2 rounded-2xl p-4 text-center">
-              <p className="font-head text-3xl font-black text-tc">{stat.value}</p>
-              <p className="text-xs text-ink-3 mt-1">{stat.label}</p>
+            <div
+              key={stat.label}
+              className="bg-bg-2 rounded-2xl p-4 text-center"
+            >
+              <p
+                className="font-head text-3xl font-black"
+                style={{ color: stat.color }}
+              >
+                {stat.value}
+              </p>
+              <p className="text-xs text-white mt-1">{stat.label}</p>
             </div>
           ))}
         </div>

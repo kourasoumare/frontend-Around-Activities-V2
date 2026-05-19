@@ -36,14 +36,28 @@ export default function ModifierProfilPage() {
     <div className="min-h-screen bg-bg pb-20 md:pb-0">
       <AppNavbar />
       <div className="max-w-2xl mx-auto px-6 py-10">
-        <Link href="/profil/1" className="text-xs text-ink-3 hover:text-ink inline-flex items-center gap-1 mb-8">
-          ← Retour au profil
-        </Link>
+        <Link
+  href="/profil/1"
+  className="text-xs text-white hover:opacity-80 inline-flex items-center gap-1 mb-8"
+>
+  ← Retour au profil
+</Link>
 
         <h1 className="font-head text-3xl font-black tracking-tight mb-1">
-          Modifier mon profil
-        </h1>
-        <p className="text-ink-3 text-sm mb-8">Mets à jour tes informations.</p>
+  <span style={{ color: "#ffffff" }}>Modifier mon</span>{" "}
+  <span
+    style={{
+      background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+    }}
+  >
+    profil
+  </span>
+</h1>
+       <p className="text-white text-sm mb-8">
+  Mets à jour tes informations.
+</p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="card space-y-4">

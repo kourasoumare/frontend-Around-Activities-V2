@@ -3,22 +3,25 @@
 
 /* ── Variables CSS ───────────────────────────────────────── */
 :root {
+  /* Couleur principale */
   --tc: #9f3ac4;
   --tc-light: #F0D5C8;
   --tc-dark: #b240bc;
 
-  --bg: #d1a7f1;
+  /* Backgrounds */
+  --bg: #6B2D8B;
   --bg-2: #F2EDE4;
   --bg-3: #b866de;
 
+  /* Textes */
   --ink: #000000;
   --ink-2: #4A4540;
   --ink-3: #ffffff;
 
+  /* Fonts */
   --font-head: "Playfair Display", Georgia, serif;
   --font-body: "DM Sans", system-ui, sans-serif;
 }
-
 /* ── Base ────────────────────────────────────────────────── */
 *,
 *::before,

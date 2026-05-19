@@ -58,11 +58,19 @@ export default function HomePage() {
         <div className="bg-ink px-8 pt-11 pb-24 relative overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_70%_at_80%_50%,rgba(196,96,58,0.2)_0%,transparent_70%)]" />
           <div className="max-w-6xl mx-auto relative z-10">
-            <p className="text-black text-sm mb-1">Bonjour,</p>
-            <h1 className="font-head text-3xl md:text-4xl font-black text-black tracking-tight mb-8">
-              {MOCK_USER.firstName} de{" "}
-              <span className="text-tc">{MOCK_USER.city}</span>
-            </h1>
+            <p className="text-white text-sm mb-1">Bonjour,</p>
+            <h1 className="font-head text-3xl md:text-4xl font-black text-white tracking-tight mb-8">
+  {MOCK_USER.firstName} de{" "}
+  <span
+    style={{
+      background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+    }}
+  >
+    {MOCK_USER.city}
+  </span>
+</h1>
 
             {/* Search bar */}
             <div className="flex items-center gap-3 bg-white rounded-full px-5 py-2 max-w-xl shadow-xl">
