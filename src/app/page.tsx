@@ -12,14 +12,30 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_70%_50%,rgba(196,96,58,0.25)_0%,transparent_70%)]" />
 
         <div className="max-w-2xl relative z-10">
-          <div className="inline-block bg-tc/15 border border-tc/30 text-tc-light text-xs font-semibold tracking-widest uppercase px-4 py-2 rounded-full mb-8">
-            Pour les nouveaux arrivants en France
-          </div>
+          <div className="inline-block bg-white/10 border  text-white text-xs font-semibold tracking-widest uppercase px-4 py-2 rounded-full mb-8">
+  Pour les nouveaux arrivants en France
+</div>
 
-          <h1 className="font-head font-black leading-[1.02] tracking-tight mb-8" style={{ fontSize: "clamp(3rem, 7vw, 5.5rem)" }}>
-  <span style={{ color: "#FAF7F2" }}>Nouvelle ville,</span><br />
-  <span style={{ color: "#FAF7F2" }}>nouvelles</span><br />
-  <span style={{ background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>aventures.</span>
+          <h1
+  className="font-head font-black leading-[1.02] tracking-tight mb-8"
+  style={{ fontSize: "clamp(3rem, 7vw, 5.5rem)" }}
+>
+  <span style={{ color: "#FAF7F2" }}>Nouvelle ville,</span>
+  <br />
+
+  <span style={{ color: "#FAF7F2" }}>
+    nouvelles{" "}
+    <span
+      style={{
+        background:
+          "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)",
+        WebkitBackgroundClip: "text",
+        WebkitTextFillColor: "transparent",
+      }}
+    >
+      aventures.
+    </span>
+  </span>
 </h1>
 
           <p className="text-lg text-white leading-relaxed mb-10 max-w-xl">
@@ -28,42 +44,11 @@ export default function LandingPage() {
           </p>
 
           <div className="flex gap-4 flex-wrap">
-            <Link href="/inscription" className="btn btn-primary btn-lg text-base">
-              Créer mon compte gratuit
-            </Link>
-            <Link
-              href="/connexion"
-              className="btn btn-lg text-base"
-              style={{ background: "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)" }}
-            >
-              Se connecter
-            </Link>
+            
           </div>
         </div>
 
-        {/* Floating cards */}
-        <div className="absolute right-12 bottom-20 hidden lg:flex flex-col gap-4">
-          {[
-            { emoji: "🎨", title: "Atelier peinture", info: "12 membres · Bordeaux" },
-            { emoji: "🏃", title: "Marathon", info: "100 membres · Lyon 3e" },
-            { emoji: "🎮", title: "Tournoi FC26", info: "20 membres · Paris 19e" },
-            { emoji: "⚽", title: "Foot du dimanche", info: "15 membres · Marseille 9e" },
-          ].map((card, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-3 bg-black/20 backdrop-blur border border-white/15 rounded-2xl px-5 py-4"
-              style={{ animation: `float 3s ease-in-out ${i * -2}s infinite` }}
-            >
-              <div className="w-9 h-9 rounded-xl bg-tc flex items-center justify-center text-lg">
-                {card.emoji}
-              </div>
-              <div>
-                <p className="text-sm text-white font-medium">{card.title}</p>
-                <p className="text-xs text-white/50">{card.info}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+        
       </section>
 
       {/* ── Problem section ─────────────────────────────────────────── */}
@@ -158,7 +143,7 @@ export default function LandingPage() {
     num: "01",
     title: "Cherche par intérêt",
     text: "Parcours nos catégories : Sport, Art, Cuisine, Musique, Tech… Trouve ce qui t'inspire.",
-    image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=600&q=80",
+    image: "https://i.pinimg.com/736x/c6/2a/70/c62a709be081d53f3a5755e0d3de5922.jpg",
   },
   {
     num: "02",
@@ -204,17 +189,24 @@ export default function LandingPage() {
         <p className="text-white/80 mb-8 text-lg">
           C&apos;est gratuit, c&apos;est simple, et ça peut tout changer.
         </p>
-        <Link
-          href="/inscription"
-          className="inline-flex items-center gap-2 bg-white text-tc font-semibold px-8 py-4 rounded-full text-base hover:bg-tc-light transition-colors"
-        >
-          Créer mon compte
-        </Link>
       </section>
 
+<div className="bg-tc flex justify-center py-8">
+  <div className="h-24 w-24 md:h-32 md:w-32 rounded-full overflow-hidden opacity-80 hover:opacity-100 transition">
+    <video
+      src="/logo.mp4"
+      autoPlay
+      loop
+      muted
+      playsInline
+      className="h-full w-full object-cover"
+    />
+  </div>
+</div>
+
       {/* ── Footer ──────────────────────────────────────────────────── */}
-      <footer className="bg-ink text-black/80 text-center py-8 text-sm">
-        <span className="font-head text-black/80">Around Activities</span>
+      <footer className="bg-ink text-white/80 text-center py-8 text-sm">
+        <span className="font-head text-white/80">Around Activities</span>
         {" "}· Fait avec amours pour les nouveaux arrivants · 2026
       </footer>
     </div>
