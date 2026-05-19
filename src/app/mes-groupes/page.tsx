@@ -7,9 +7,14 @@ import { MY_GROUPS } from "@/lib/data";
 
 export default function MesGroupesPage() {
   const [activeTab, setActiveTab] = useState<"joined" | "created">("joined");
+  const [groups, setGroups] = useState(MY_GROUPS);
 
-  const joined = MY_GROUPS.filter((g) => !g.isOrganizer);
-  const created = MY_GROUPS.filter((g) => g.isOrganizer);
+  function retirerGroupe(id: number) {
+    setGroups((prev) => prev.filter((g) => g.id !== id));
+  }
+
+  const joined = groups.filter((g) => !g.isOrganizer);
+  const created = groups.filter((g) => g.isOrganizer);
 
   const current = activeTab === "joined" ? joined : created;
 
@@ -20,10 +25,10 @@ export default function MesGroupesPage() {
       {/* ── Header ────────────────────────────────────────────────── */}
       <div className="bg-ink px-8 pt-10 pb-20">
         <div className="max-w-3xl mx-auto">
-          <h1 className="font-head text-4xl font-black text-white tracking-tight">
+          <h1 className="font-head text-4xl font-black text-black tracking-tight">
             Mes groupes
           </h1>
-          <p className="text-white/50 text-sm mt-2">
+          <p className="text-black text-sm mt-2">
             Suis et gère toutes tes sorties
           </p>
         </div>
@@ -55,9 +60,7 @@ export default function MesGroupesPage() {
                 key={group.id}
                 className="bg-white rounded-2xl p-5 border border-bg-3 flex items-center gap-4 hover:border-tc-light transition-all duration-200"
               >
-                <div className="w-11 h-11 rounded-xl bg-bg-2 flex items-center justify-center text-2xl shrink-0">
-                  {group.emoji}
-                </div>
+                
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-ink truncate">{group.name}</h3>
                   <p className="text-xs text-ink-3 mt-0.5">
@@ -66,11 +69,11 @@ export default function MesGroupesPage() {
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   {group.isOrganizer ? (
-                    <button className="btn btn-sm text-red-500 border-red-100 hover:bg-red-50">
-                      🗑 Supprimer
-                    </button>
+                    <button className="btn btn-sm text-red-500 border-red-100 hover:bg-red-50" onClick={() => retirerGroupe(group.id)}>
+  🗑 Supprimer
+</button>
                   ) : (
-                    <button className="btn btn-secondary btn-sm">Quitter</button>
+                    <button className="btn btn-secondary btn-sm" onClick={() => retirerGroupe(group.id)}>Quitter</button>
                   )}
                   <Link
                     href={`/groupes/${group.id}`}

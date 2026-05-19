@@ -23,10 +23,10 @@ export default function ProfilPage() {
           >
             {initials}
           </div>
-          <h1 className="font-head text-3xl font-black text-white tracking-tight mb-1">
+          <h1 className="font-head text-3xl font-black text-black tracking-tight mb-1">
             {user.firstName} {user.lastName}
           </h1>
-          <p className="text-white/50 text-sm flex items-center gap-1">
+          <p className="text-black text-sm flex items-center gap-1">
             📍 {user.city} · Membre depuis {user.createdAt}
           </p>
         </div>
@@ -63,9 +63,6 @@ export default function ProfilPage() {
             {groups.map((group) => (
               <Link key={group.id} href={`/groupes/${group.id}`}>
                 <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-bg transition-colors">
-                  <div className="w-10 h-10 rounded-xl bg-bg-2 flex items-center justify-center text-xl shrink-0">
-                    {group.emoji}
-                  </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm text-ink truncate">{group.name}</p>
                     <p className="text-xs text-ink-3">

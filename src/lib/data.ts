@@ -2,7 +2,7 @@
 
 export interface Activity {
   id: number;
-  emoji: string;
+  image: string;
   title: string;
   category: string;
   city: string;
@@ -68,7 +68,7 @@ export const INTERESTS = [
 export const ACTIVITIES: Activity[] = [
   {
     id: 1,
-    emoji: "🎨",
+    image: "/aquarelle.jpg",
     title: "Atelier peinture aquarelle",
     category: "Art",
     city: "Paris",
@@ -79,7 +79,7 @@ export const ACTIVITIES: Activity[] = [
   },
   {
     id: 2,
-    emoji: "⚽",
+    image: "/football.jpg",
     title: "Foot du dimanche",
     category: "Sport",
     city: "Paris",
@@ -90,7 +90,7 @@ export const ACTIVITIES: Activity[] = [
   },
   {
     id: 3,
-    emoji: "🍳",
+    image: "/cuisine.jpg",
     title: "Cuisine du monde",
     category: "Cuisine",
     city: "Paris",
@@ -101,7 +101,7 @@ export const ACTIVITIES: Activity[] = [
   },
   {
     id: 4,
-    emoji: "🎸",
+    image: "/guitare.jpg",
     title: "Jam session guitar",
     category: "Musique",
     city: "Paris",
@@ -112,7 +112,7 @@ export const ACTIVITIES: Activity[] = [
   },
   {
     id: 5,
-    emoji: "🧘",
+    image: "/yoga.jpg",
     title: "Yoga en plein air",
     category: "Bien-être",
     city: "Paris",
@@ -123,7 +123,7 @@ export const ACTIVITIES: Activity[] = [
   },
   {
     id: 6,
-    emoji: "📸",
+    image: "/photo.jpg",
     title: "Balade photo urbaine",
     category: "Art",
     city: "Paris",
@@ -134,8 +134,8 @@ export const ACTIVITIES: Activity[] = [
   },
   {
     id: 7,
-    emoji: "💻",
-    title: "Coding & Side projects",
+    image: "/coding.jpg",
+    title: "Coding and Side projects",
     category: "Tech",
     city: "Paris",
     groupsCount: 3,
@@ -145,7 +145,7 @@ export const ACTIVITIES: Activity[] = [
   },
   {
     id: 8,
-    emoji: "🌿",
+    image: "/randonnee.jpg",
     title: "Randonnée en forêt",
     category: "Nature",
     city: "Paris",
@@ -161,8 +161,7 @@ export const GROUPS: Group[] = [
     id: 1,
     activityId: 1,
     name: "Aquarellistes du dimanche",
-    description:
-      "On se retrouve chaque dimanche pour peindre ensemble dans une bonne ambiance. Débutants bienvenus ! On apporte le matériel de base.",
+    description: "On se retrouve chaque dimanche pour peindre ensemble dans une bonne ambiance. Débutants bienvenus ! On apporte le matériel de base.",
     date: "Dim. 15 juin · 14h00",
     location: "Studio Art, Paris 11e",
     maxMembers: 8,
@@ -172,10 +171,45 @@ export const GROUPS: Group[] = [
   },
   {
     id: 2,
+    activityId: 2,
+    name: "Foot du dimanche",
+    description: "Match amical chaque dimanche matin au parc. Tous niveaux, bonne ambiance garantie.",
+    date: "Dim. 22 juin · 10h00",
+    location: "Bois de Vincennes, Paris 12e",
+    maxMembers: 14,
+    members: ["Jules M.", "Sofia R.", "Lucas M.", "Emma K.", "Thomas B.", "Camille T.", "Noah L.", "Lena V.", "Marc D.", "Antoine P."],
+    organizer: "Jules M.",
+    contactLink: "https://wa.me/example",
+  },
+  {
+    id: 3,
+    activityId: 3,
+    name: "Cuisine coréenne",
+    description: "On cuisine ensemble un repas coréen traditionnel. Débutants bienvenus, on apprend ensemble !",
+    date: "Sam. 28 juin · 15h00",
+    location: "Paris 9e",
+    maxMembers: 6,
+    members: ["Jules M.", "Sofia R.", "Lucas M.", "Emma K.", "Thomas B."],
+    organizer: "Sofia R.",
+    contactLink: "https://discord.gg/example3",
+  },
+  {
+    id: 4,
+    activityId: 5,
+    name: "Yoga Jardin des Plantes",
+    description: "Séance de yoga en plein air dans le Jardin des Plantes. Tapis recommandé.",
+    date: "Ven. 20 juin · 8h00",
+    location: "Jardin des Plantes, Paris 5e",
+    maxMembers: 10,
+    members: ["Jules M.", "Sofia R.", "Lucas M.", "Emma K.", "Thomas B.", "Camille T.", "Noah L."],
+    organizer: "Jules M.",
+    contactLink: "https://wa.me/example2",
+  },
+  {
+    id: 5,
     activityId: 1,
     name: "Peintres du jeudi soir",
-    description:
-      "Session peinture détendue le jeudi soir après le boulot. Verre de vin autorisé 🍷",
+    description: "Session peinture détendue le jeudi soir après le boulot. Verre de vin autorisé 🍷",
     date: "Jeu. 12 juin · 19h30",
     location: "Café culturel, Paris 3e",
     maxMembers: 6,
@@ -184,11 +218,10 @@ export const GROUPS: Group[] = [
     contactLink: "https://wa.me/example",
   },
   {
-    id: 3,
+    id: 6,
     activityId: 1,
     name: "Atelier du samedi matin",
-    description:
-      "Pour les lève-tôt passionnés d'aquarelle. Petit dej partagé avant de commencer.",
+    description: "Pour les lève-tôt passionnés d'aquarelle. Petit dej partagé avant de commencer.",
     date: "Sam. 14 juin · 9h00",
     location: "Parc des Buttes-Chaumont, Paris 19e",
     maxMembers: 10,
@@ -197,11 +230,10 @@ export const GROUPS: Group[] = [
     contactLink: "https://discord.gg/example2",
   },
 ];
-
 export const MY_GROUPS = [
   {
     id: 1,
-    emoji: "🎨",
+    image: "/images/aquarelle.jpg",
     name: "Aquarellistes du dimanche",
     activity: "Peinture aquarelle",
     date: "15 juin",
@@ -211,7 +243,7 @@ export const MY_GROUPS = [
   },
   {
     id: 2,
-    emoji: "⚽",
+    image: "/images/football.jpg",
     name: "Foot du dimanche",
     activity: "Foot en plein air",
     date: "22 juin",
@@ -221,7 +253,7 @@ export const MY_GROUPS = [
   },
   {
     id: 3,
-    emoji: "🍳",
+    image: "/images/cuisine.jpg",
     name: "Cuisine coréenne",
     activity: "Cuisine du monde",
     date: "28 juin",
@@ -231,7 +263,7 @@ export const MY_GROUPS = [
   },
   {
     id: 4,
-    emoji: "🧘",
+    image: "/images/yoga.jpg",
     name: "Yoga Jardin des Plantes",
     activity: "Yoga en plein air",
     date: "20 juin",
@@ -250,3 +282,4 @@ export const MOCK_USER: User = {
   interests: ["🎨 Art", "⚽ Sport", "🍳 Cuisine", "🎵 Musique", "📚 Lecture"],
   createdAt: "mai 2025",
 };
+

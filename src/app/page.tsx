@@ -3,7 +3,7 @@ import { PublicNavbar } from "@/components/Navbar";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-bg">
+   <div className="min-h-screen" style={{ background: "#2D1535" }}>
       <PublicNavbar />
 
       {/* ── Hero ────────────────────────────────────────────────────── */}
@@ -16,14 +16,13 @@ export default function LandingPage() {
             Pour les nouveaux arrivants en France
           </div>
 
-          <h1 className="font-head text-5xl md:text-7xl font-black leading-[1.05] tracking-tight mb-6">
-            Nouvelle ville,{" "}
-            <em className="text-tc not-italic">nouvelles</em>
-            <br />
-            aventures.
-          </h1>
+          <h1 className="font-head font-black leading-[1.02] tracking-tight mb-8" style={{ fontSize: "clamp(3rem, 7vw, 5.5rem)" }}>
+  <span style={{ color: "#FAF7F2" }}>Nouvelle ville,</span><br />
+  <span style={{ color: "#FAF7F2" }}>nouvelles</span><br />
+  <span style={{ background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>aventures.</span>
+</h1>
 
-          <p className="text-lg text-black/70 leading-relaxed mb-10 max-w-xl">
+          <p className="text-lg text-white leading-relaxed mb-10 max-w-xl">
             Trouve des sorties qui te ressemblent, rejoins un groupe et rencontre
             des personnes qui partagent tes intérêts. Sans prise de tête.
           </p>
@@ -73,9 +72,10 @@ export default function LandingPage() {
           <div className="w-3 h-0.5 bg-tc" />
           Le problème
         </div>
-        <h2 className="font-head text-4xl md:text-5xl tracking-tight leading-tight mb-5">
-          Arriver quelque part<br />ne devrait pas être seul.
-        </h2>
+        <h2 className="font-head text-4xl md:text-5xl tracking-tight leading-tight mb-8">
+  <span style={{ color: "#FAF7F2" }}>Arriver quelque part<br />ne devrait </span>
+  <span style={{ background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>pas être seul.</span>
+</h2>
         <p className="text-ink-2 text-lg leading-relaxed max-w-xl mb-16">
           Des milliers d&apos;étudiants et jeunes actifs déménagent chaque année.
           La plupart passent leurs premiers mois dans l&apos;ennui et la solitude.
@@ -104,7 +104,8 @@ export default function LandingPage() {
           ].map((item) => (
             <div
               key={item.num}
-              className="group self-start bg-white border border-bg-3 rounded-2xl overflow-hidden hover:-translate-y-1 hover:shadow-lg hover:border-tc-light transition-all duration-300"
+              className="group self-start hover:-translate-y-1 transition-all duration-300 rounded-2xl overflow-hidden"
+              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)" }}
             >
               <div className="h-0 group-hover:h-44 overflow-hidden transition-all duration-500">
                 <img
@@ -114,11 +115,12 @@ export default function LandingPage() {
                 />
               </div>
               <div className="p-10">
-                <div className="font-head text-7xl text-tc-light group-hover:text-tc font-black leading-none mb-8 transition-colors duration-300">
+                <div className="font-head text-7xl font-black leading-none mb-8 transition-colors duration-300"
+                  style={{ color: item.num === "01" ? "#C4603A" : item.num === "02" ? "#B8722E" : "#F0A860" }}>
                   {item.num}
                 </div>
-                <h3 className="font-semibold text-xl mb-4">{item.title}</h3>
-                <p className="text-sm text-ink-2 leading-relaxed">{item.text}</p>
+                <h3 className="font-semibold text-xl mb-4" style={{ color: "#FAF7F2" }}>{item.title}</h3>
+                <p className="text-sm leading-relaxed" style={{ color: "rgba(250,247,242,0.55)" }}>{item.text}</p>
               </div>
             </div>
           ))}
@@ -132,32 +134,34 @@ export default function LandingPage() {
             <div className="w-7 h-0.5 bg-tc" />
             Comment ça marche
           </div>
-          <h2 className="font-head text-4xl md:text-5xl text-black tracking-tight leading-tight mb-16">
-            Trois étapes,<br />mille rencontres.
-          </h2>
+          <h2 className="font-head text-4xl md:text-5xl tracking-tight leading-tight mb-20">
+  <span style={{ color: "#FAF7F2" }}>Trois étapes,<br /></span>
+  <span style={{ background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>mille rencontres.</span>
+</h2>
 
           <div className="grid md:grid-cols-3 gap-10 items-start">
             {[
   {
-    num: "1",
+    num: "01",
     title: "Cherche par intérêt",
     text: "Parcours nos catégories : Sport, Art, Cuisine, Musique, Tech… Trouve ce qui t'inspire.",
     image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=600&q=80",
   },
   {
-    num: "2",
+    num: "02",
     title: "Rejoins ou crée un groupe",
     text: "Rejoins un groupe existant ou lance le tien. Tu définis la date, le lieu et l'ambiance.",
     image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&q=80",
   },
   {
-    num: "3",
+    num: "03",
     title: "Rencontre des personnes",
     text: "Vas-y, passe un bon moment, et construis ton réseau naturellement.",
     image: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=600&q=80",
   },
             ].map((step) => (
-              <div key={step.num} className="group self-start bg-white border border-bg-3 rounded-2xl overflow-hidden hover:-translate-y-1 hover:shadow-lg hover:border-tc-light transition-all duration-300">
+              <div key={step.num} className="group self-start hover:-translate-y-1 transition-all duration-300 rounded-2xl overflow-hidden"
+                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)" }}>
                 <div className="h-0 group-hover:h-44 overflow-hidden transition-all duration-500">
                   <img
                     src={step.image}
@@ -166,11 +170,12 @@ export default function LandingPage() {
                   />
                 </div>
                 <div className="p-10">
-                  <div className="font-head text-7xl text-tc-light group-hover:text-tc font-black leading-none mb-8 transition-colors duration-300">
+                  <div className="font-head text-7xl font-black leading-none mb-8 transition-colors duration-300"
+                    style={{ color: step.num === "01" ? "#C4603A" : step.num === "02" ? "#B8722E" : "#F0A860" }}> 
                     {step.num}
                   </div>
-                  <h3 className="font-semibold text-ink text-xl mb-4">{step.title}</h3>
-                  <p className="text-ink-2 text-sm leading-relaxed">{step.text}</p>
+                  <h3 className="font-semibold text-xl mb-4" style={{ color: "#FAF7F2" }}>{step.title}</h3>
+                  <p className="text-sm leading-relaxed" style={{ color: "rgba(250,247,242,0.55)" }}>{step.text}</p>
                 </div>
               </div>
             ))}
@@ -180,10 +185,10 @@ export default function LandingPage() {
 
       {/* ── CTA Banner ──────────────────────────────────────────────── */}
       <section className="bg-tc py-15 px-8 text-center">
-        <h2 className="font-head text-4xl md:text-5xl text-black tracking-tight mb-4">
+        <h2 className="font-head text-4xl md:text-5xl text-white tracking-tight mb-4">
           Prêt·e à explorer ta ville ?
         </h2>
-        <p className="text-black/80 mb-8 text-lg">
+        <p className="text-white/80 mb-8 text-lg">
           C&apos;est gratuit, c&apos;est simple, et ça peut tout changer.
         </p>
         <Link
