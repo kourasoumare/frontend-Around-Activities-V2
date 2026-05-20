@@ -5,11 +5,10 @@ export default function LandingPage() {
   return (
    <div className="min-h-screen" style={{ background: "#2D1535" }}>
       <PublicNavbar />
-
       {/* ── Hero ────────────────────────────────────────────────────── */}
-      <section className="bg-ink flex items-center relative overflow-hidden px-8 pt-16 pb-16">
+      <section className="flex items-center relative px-8 pt-24 pb-24" style={{ background: "transparent" }}>
         {/* Background glow */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_70%_50%,rgba(196,96,58,0.25)_0%,transparent_70%)]" />
+        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 70% 90% at 85% 15%, rgba(196,96,58,0.55) 0%, rgba(160,60,180,0.3) 50%, transparent 80%)" }} />
 
         <div className="max-w-2xl relative z-10">
           <div className="inline-block bg-white/10 border  text-white text-xs font-semibold tracking-widest uppercase px-4 py-2 rounded-full mb-8">
@@ -17,31 +16,23 @@ export default function LandingPage() {
 </div>
 
           <h1
-  className="font-head font-black leading-[1.02] tracking-tight mb-8"
-  style={{ fontSize: "clamp(3rem, 7vw, 5.5rem)" }}
+  className="font-head font-black leading-[1.02] tracking-tight"
+  style={{ fontSize: "clamp(3rem, 7vw, 5.5rem)", marginBottom: "3rem" }}
 >
   <span style={{ color: "#FAF7F2" }}>Nouvelle ville,</span>
   <br />
-
   <span style={{ color: "#FAF7F2" }}>
     nouvelles{" "}
-    <span
-      style={{
-        background:
-          "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)",
-        WebkitBackgroundClip: "text",
-        WebkitTextFillColor: "transparent",
-      }}
-    >
+    <span style={{ background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
       aventures.
     </span>
   </span>
 </h1>
 
-          <p className="text-lg text-white leading-relaxed mb-10 max-w-xl">
-            Trouve des sorties qui te ressemblent, rejoins un groupe et rencontre
-            des personnes qui partagent tes intérêts. Sans prise de tête.
-          </p>
+<p style={{ fontSize: "1.1rem", color: "rgba(255,255,255,0.8)", lineHeight: 1.75, marginBottom: "3.5rem", maxWidth: "520px" }}>
+  Trouve des sorties qui te ressemblent, rejoins un groupe et rencontre
+  des personnes qui partagent tes intérêts. Sans prise de tête.
+</p>
 
           <div className="flex gap-4 flex-wrap">
             
@@ -51,8 +42,9 @@ export default function LandingPage() {
         
       </section>
 
+
       {/* ── Problem section ─────────────────────────────────────────── */}
-      <section className="py-20 px-5 max-w-6xl mx-auto">
+      <section className="pt-1 pb-20 px-5 max-w-6xl mx-auto">
 
   <div className="flex items-center gap-2 text-white text-xs font-semibold tracking-widest uppercase mb-4">
     <div className="w-3 h-0.5 bg-tc" />
@@ -74,7 +66,7 @@ export default function LandingPage() {
     </span>
   </h2>
 
-  <p className="text-white text-lg leading-relaxed max-w-xl mb-16">
+  <p style={{ color: "rgba(250,247,242,0.65)", fontSize: "1.05rem", lineHeight: 1.7, maxWidth: "520px", marginBottom: "2rem" }}>
     Des milliers d&apos;étudiants et jeunes actifs déménagent chaque année.
     La plupart passent leurs premiers mois dans l&apos;ennui et la solitude.
   </p>
