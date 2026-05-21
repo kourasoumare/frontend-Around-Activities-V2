@@ -6,7 +6,7 @@ export default function LandingPage() {
    <div className="min-h-screen" style={{ background: "#2D1535" }}>
       <PublicNavbar />
       {/* ── Hero ────────────────────────────────────────────────────── */}
-      <section className="flex items-center relative px-8 pt-24 pb-24" style={{ background: "transparent" }}>
+      <section className="flex items-center relative px-8 pt-4 pb-8" style={{ background: "transparent" }}>
         {/* Background glow */}
         <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 70% 90% at 85% 15%, rgba(196,96,58,0.55) 0%, rgba(160,60,180,0.3) 50%, transparent 80%)" }} />
 
