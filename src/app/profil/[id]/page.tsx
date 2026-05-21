@@ -62,7 +62,7 @@ export default function ProfilPage() {
           {/* Groupes récents */}
           <div style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.10)", borderRadius: "1.5rem", padding: "1.75rem" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
-              <h2 style={{ fontWeight: 600, color: "#FAF7F2" }}>Groupes récents</h2>
+              <h2 style={{ fontWeight: 600, color: "#FAF7F2" }}>Groupes</h2>
               <Link href="/mes-groupes" style={{ fontSize: "0.78rem", color: "#E8924A", fontWeight: 600, textDecoration: "none" }}>
                 Voir tout →
               </Link>

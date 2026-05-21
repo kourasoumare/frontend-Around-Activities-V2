@@ -13,6 +13,7 @@ export default function InscriptionPage() {
     password: "",
     confirmPassword: "",
     city: "Paris",
+    origin: "", // ✅ AJOUT
   });
   const [error, setError] = useState("");
   const [cityOpen, setCityOpen] = useState(false);
@@ -32,34 +33,40 @@ export default function InscriptionPage() {
       setError("Les mots de passe ne correspondent pas.");
       return;
     }
+
+    // form.origin est prêt pour le backend ✅
     router.push("/onboarding");
   }
 
   const inputStyle = {
-    width: "100%", padding: "0.85rem 1rem",
+    width: "100%",
+    padding: "0.85rem 1rem",
     background: "rgba(255,255,255,0.08)",
     border: "1px solid rgba(255,255,255,0.12)",
-    borderRadius: "0.75rem", color: "#FAF7F2",
-    fontSize: "0.9rem", outline: "none", fontFamily: "inherit",
+    borderRadius: "0.75rem",
+    color: "#FAF7F2",
+    fontSize: "0.9rem",
+    outline: "none",
+    fontFamily: "inherit",
   };
 
   const labelStyle = {
-    display: "block", fontSize: "0.75rem", fontWeight: 600,
-    color: "rgba(250,247,242,0.5)", marginBottom: "0.5rem", letterSpacing: "0.05em",
+    display: "block",
+    fontSize: "0.75rem",
+    fontWeight: 600,
+    color: "rgba(250,247,242,0.5)",
+    marginBottom: "0.5rem",
+    letterSpacing: "0.05em",
   };
 
   return (
     <div className="min-h-screen relative flex items-center justify-center p-6" style={{ background: "#2D1535" }}>
-
-      {/* Dégradés animés */}
       <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
         <div className="absolute gradient-animated" style={{ width: "60%", height: "60%", top: "-10%", left: "-10%", background: "radial-gradient(ellipse, rgba(196,96,58,0.30) 0%, transparent 70%)" }} />
         <div className="absolute gradient-animated" style={{ width: "50%", height: "50%", bottom: "0%", right: "-10%", background: "radial-gradient(ellipse, rgba(160,60,180,0.25) 0%, transparent 70%)", animationDelay: "-4s" }} />
       </div>
 
       <div className="relative z-10 w-full max-w-md">
-
-        {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-3">
             <video src="/logo.mp4" autoPlay loop muted playsInline className="h-16 w-16 rounded-full object-cover" />
@@ -67,13 +74,11 @@ export default function InscriptionPage() {
           </Link>
         </div>
 
-        {/* Card */}
         <div style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "1.5rem", padding: "2.5rem", backdropFilter: "blur(12px)" }}>
-
           <h1 className="font-head font-black tracking-tight mb-1" style={{ fontSize: "2rem", color: "#FAF7F2" }}>
-            Bienvenue{" "}
-            <span style={{ background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent", color: "transparent" }}></span>
+            Bienvenue
           </h1>
+
           <p style={{ color: "rgba(250,247,242,0.5)", fontSize: "0.875rem", marginBottom: "2rem" }}>
             Crée ton compte et commence à explorer.
           </p>
@@ -85,7 +90,6 @@ export default function InscriptionPage() {
           )}
 
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
               <div>
                 <label style={labelStyle}>PRÉNOM *</label>
@@ -112,7 +116,6 @@ export default function InscriptionPage() {
               <input style={inputStyle} type="password" name="confirmPassword" placeholder="••••••••" value={form.confirmPassword} onChange={handleChange} />
             </div>
 
-            {/* Ville custom dropdown */}
             <div>
               <label style={labelStyle}>VILLE *</label>
               <div style={{ position: "relative" }}>
@@ -126,9 +129,12 @@ export default function InscriptionPage() {
                 {cityOpen && (
                   <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, background: "#1A0A2E", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "0.75rem", overflow: "hidden", zIndex: 50 }}>
                     {cities.map((c) => (
-                      <button key={c} type="button"
+                      <button
+                        key={c}
+                        type="button"
                         onClick={() => { setForm((prev) => ({ ...prev, city: c })); setCityOpen(false); }}
-                        style={{ width: "100%", padding: "0.75rem 1rem", background: form.city === c ? "rgba(196,96,58,0.20)" : "transparent", color: form.city === c ? "#E8924A" : "rgba(250,247,242,0.7)", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem", textAlign: "left", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                        style={{ width: "100%", padding: "0.75rem 1rem", background: form.city === c ? "rgba(196,96,58,0.20)" : "transparent", color: form.city === c ? "#E8924A" : "rgba(250,247,242,0.7)", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem", textAlign: "left", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
+                      >
                         {form.city === c ? "✓ " : ""}{c}
                       </button>
                     ))}
@@ -137,30 +143,30 @@ export default function InscriptionPage() {
               </div>
             </div>
 
+            {/* ✅ ORIGINE */}
+            <div>
+              <label style={labelStyle}>ORIGINE</label>
+              <input
+                style={inputStyle}
+                name="origin"
+                placeholder="Ex : Maroc, France, Italie…"
+                value={form.origin}
+                onChange={handleChange}
+              />
+            </div>
+
             <button type="submit" style={{ width: "100%", padding: "0.9rem", background: "linear-gradient(135deg, #C4603A, #E8924A)", color: "#fff", border: "none", borderRadius: "0.75rem", fontWeight: 600, fontSize: "1rem", cursor: "pointer", fontFamily: "inherit", marginTop: "0.5rem" }}>
               Créer mon compte →
             </button>
           </form>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem", margin: "1.5rem 0" }}>
-            <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
-            <span style={{ color: "rgba(250,247,242,0.3)", fontSize: "0.8rem" }}>ou</span>
-            <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
-          </div>
-
-          <p style={{ textAlign: "center", fontSize: "0.875rem", color: "rgba(250,247,242,0.4)" }}>
+          <p style={{ textAlign: "center", fontSize: "0.875rem", color: "rgba(250,247,242,0.4)", marginTop: "1.5rem" }}>
             Déjà un compte ?{" "}
-            <Link href="/connexion" style={{ color: "#E8924A", fontWeight: 600, textDecoration: "none" }}>
+            <Link href="/connexion" style={{ color: "#E8924A", fontWeight: 600 }}>
               Se connecter
             </Link>
           </p>
         </div>
-
-        <p style={{ textAlign: "center", marginTop: "1.5rem" }}>
-          <Link href="/" style={{ color: "rgba(250,247,242,0.3)", fontSize: "0.8rem", textDecoration: "none" }}>
-            ← Retour à l&apos;accueil
-          </Link>
-        </p>
       </div>
     </div>
   );
