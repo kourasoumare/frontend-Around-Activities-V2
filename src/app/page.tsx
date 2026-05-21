@@ -15,18 +15,10 @@ export default function LandingPage() {
   Pour les nouveaux arrivants en France
 </div>
 
-          <h1
-  className="font-head font-black leading-[1.02] tracking-tight"
-  style={{ fontSize: "clamp(3rem, 7vw, 5.5rem)", marginBottom: "3rem" }}
->
-  <span style={{ color: "#FAF7F2" }}>Nouvelle ville,</span>
-  <br />
-  <span style={{ color: "#FAF7F2" }}>
-    nouvelles{" "}
-    <span style={{ background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-      aventures.
-    </span>
-  </span>
+          <h1 className="font-head font-black leading-[1.02] tracking-tight mb-8" style={{ fontSize: "clamp(3rem, 7vw, 5.5rem)" }}>
+  <span style={{ color: "#FAF7F2" }}>Nouvelle ville,</span><br />
+<span style={{ color: "#FAF7F2" }}>nouvelles </span>
+<span style={{ background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent", color: "transparent" }}>aventures.</span>
 </h1>
 
 <p style={{ fontSize: "1.1rem", color: "rgba(255,255,255,0.8)", lineHeight: 1.75, marginBottom: "3.5rem", maxWidth: "520px" }}>
