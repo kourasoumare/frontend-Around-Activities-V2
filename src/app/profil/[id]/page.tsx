@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AppNavbar } from "@/components/Navbar";
 import { MOCK_USER, MY_GROUPS } from "@/lib/data";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 export default function ProfilPage() {
   const user = MOCK_USER;
@@ -8,6 +9,7 @@ export default function ProfilPage() {
   const initials = `${user.firstName[0]}${user.lastName[0]}`;
 
   return (
+    <ProtectedRoute>
     <div className="min-h-screen pb-20 md:pb-0 relative" style={{ background: "#2D1535" }}>
 
       {/* Dégradés animés */}
@@ -19,10 +21,8 @@ export default function ProfilPage() {
       <div className="relative z-10">
         <AppNavbar />
 
-        {/* ── Header ────────────────────────────────────────────────── */}
         <div className="px-8 pt-10 pb-24 relative overflow-hidden">
           <div className="max-w-3xl mx-auto">
-            {/* Avatar */}
             <div style={{ width: 80, height: 80, borderRadius: "50%", background: "linear-gradient(135deg, #C4603A, #E8924A)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-head)", fontSize: "2rem", fontWeight: 900, color: "#fff", border: "3px solid rgba(255,255,255,0.15)", marginBottom: "1.25rem" }}>
               {initials}
             </div>
@@ -39,10 +39,8 @@ export default function ProfilPage() {
           </div>
         </div>
 
-        {/* ── Content ───────────────────────────────────────────────── */}
         <div className="max-w-3xl mx-auto px-8 -mt-10 relative z-10" style={{ display: "flex", flexDirection: "column", gap: "1.25rem", paddingBottom: "3rem" }}>
 
-          {/* Centres d'intérêt */}
           <div style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.10)", borderRadius: "1.5rem", padding: "1.75rem" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
               <h2 style={{ fontWeight: 600, color: "#FAF7F2" }}>Centres d&apos;intérêt</h2>
@@ -59,7 +57,6 @@ export default function ProfilPage() {
             </div>
           </div>
 
-          {/* Groupes récents */}
           <div style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.10)", borderRadius: "1.5rem", padding: "1.75rem" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
               <h2 style={{ fontWeight: 600, color: "#FAF7F2" }}>Groupes</h2>
@@ -69,7 +66,7 @@ export default function ProfilPage() {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
               {groups.map((group) => (
-                <Link key={group.id} href={`/groupes/${group.id}`} style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.75rem", borderRadius: "0.75rem", background: "rgba(255,255,255,0.04)", textDecoration: "none", transition: "background 0.2s" }}>
+                <Link key={group.id} href={`/groupes/${group.id}`} style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.75rem", borderRadius: "0.75rem", background: "rgba(255,255,255,0.04)", textDecoration: "none" }}>
                   <div style={{ width: 40, height: 40, borderRadius: "0.625rem", background: "rgba(196,96,58,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.1rem", flexShrink: 0 }}>
                     {group.activity.includes("peinture") ? "🎨" : group.activity.includes("Foot") ? "⚽" : group.activity.includes("Cuisine") ? "🍳" : "🧘"}
                   </div>
@@ -83,7 +80,6 @@ export default function ProfilPage() {
             </div>
           </div>
 
-          {/* Stats */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1rem" }}>
             {[
               { label: "Groupes rejoints", value: MY_GROUPS.filter((g) => !g.isOrganizer).length },
@@ -100,5 +96,6 @@ export default function ProfilPage() {
         </div>
       </div>
     </div>
+    </ProtectedRoute>
   );
 }

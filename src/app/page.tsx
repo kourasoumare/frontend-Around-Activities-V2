@@ -11,9 +11,7 @@ export default function LandingPage() {
         <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 70% 90% at 85% 15%, rgba(196,96,58,0.55) 0%, rgba(160,60,180,0.3) 50%, transparent 80%)" }} />
 
         <div className="max-w-2xl relative z-10">
-          <div className="inline-block bg-white/10 border  text-white text-xs font-semibold tracking-widest uppercase px-4 py-2 rounded-full mb-8">
-  Pour les nouveaux arrivants en France
-</div>
+         
 
           <h1 className="font-head font-black leading-[1.02] tracking-tight mb-8" style={{ fontSize: "clamp(3rem, 7vw, 5.5rem)" }}>
   <span style={{ color: "#FAF7F2" }}>Nouvelle ville,</span><br />
@@ -47,13 +45,7 @@ export default function LandingPage() {
     <span style={{ color: "#FAF7F2" }}>
       Arriver quelque part<br />ne devrait{" "}
     </span>
-    <span
-      style={{
-        background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)",
-        WebkitBackgroundClip: "text",
-        WebkitTextFillColor: "transparent",
-      }}
-    >
+    <span style={{ background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
       pas être seul.
     </span>
   </h2>
@@ -86,17 +78,17 @@ export default function LandingPage() {
           ].map((item) => (
             <div
               key={item.num}
-              className="group self-start hover:-translate-y-1 transition-all duration-300 rounded-2xl overflow-hidden"
+              className="group self-start hover:-translate-y-1 transition-all duration-300 rounded-2xl overflow-hidden relative"
               style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)" }}
             >
-              <div className="h-0 group-hover:h-44 overflow-hidden transition-all duration-500">
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="w-full h-44 object-cover"
-                />
+              {/* Image en overlay au hover */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0">
+                <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                <div className="absolute inset-0" style={{ background: "rgba(20,10,30,0.75)" }} />
               </div>
-              <div className="p-10">
+
+              {/* Contenu toujours visible */}
+              <div className="p-10 relative z-10">
                 <div className="font-head text-7xl font-black leading-none mb-8 transition-colors duration-300"
                   style={{ color: item.num === "01" ? "#C4603A" : item.num === "02" ? "#B8722E" : "#F0A860" }}>
                   {item.num}
@@ -113,13 +105,13 @@ export default function LandingPage() {
       <section className="bg-ink pt-5 pb-32 px-8">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-0 text-white text-xs font-semibold tracking-widest uppercase mb-3">
-  <div className="w-7 h-0.5 bg-tc" />
-  Comment ça marche
-</div>
+            <div className="w-7 h-0.5 bg-tc" />
+            Comment ça marche
+          </div>
           <h2 className="font-head text-4xl md:text-5xl tracking-tight leading-tight mb-20">
-  <span style={{ color: "#FAF7F2" }}>Trois étapes,<br /></span>
-  <span style={{ background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>mille rencontres.</span>
-</h2>
+            <span style={{ color: "#FAF7F2" }}>Trois étapes,<br /></span>
+            <span style={{ background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>mille rencontres.</span>
+          </h2>
 
           <div className="grid md:grid-cols-3 gap-10 items-start">
             {[
@@ -141,19 +133,19 @@ export default function LandingPage() {
     text: "Vas-y, passe un bon moment, et construis ton réseau naturellement.",
     image: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=600&q=80",
   },
-            ].map((step) => (
-              <div key={step.num} className="group self-start hover:-translate-y-1 transition-all duration-300 rounded-2xl overflow-hidden"
+           ].map((step) => (
+              <div key={step.num} className="group self-start hover:-translate-y-1 transition-all duration-300 rounded-2xl overflow-hidden relative h-[280px]"
                 style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)" }}>
-                <div className="h-0 group-hover:h-44 overflow-hidden transition-all duration-500">
-                  <img
-                    src={step.image}
-                    alt={step.title}
-                    className="w-full h-44 object-cover"
-                  />
+                {/* Image en overlay au hover */}
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0">
+                  <img src={step.image} alt={step.title} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0" style={{ background: "rgba(20,10,30,0.75)" }} />
                 </div>
-                <div className="p-10">
+
+                {/* Contenu toujours visible */}
+                <div className="p-10 relative z-10">
                   <div className="font-head text-7xl font-black leading-none mb-8 transition-colors duration-300"
-                    style={{ color: step.num === "01" ? "#C4603A" : step.num === "02" ? "#B8722E" : "#F0A860" }}> 
+                    style={{ color: step.num === "01" ? "#C4603A" : step.num === "02" ? "#B8722E" : "#F0A860" }}>
                     {step.num}
                   </div>
                   <h3 className="font-semibold text-xl mb-4" style={{ color: "#FAF7F2" }}>{step.title}</h3>

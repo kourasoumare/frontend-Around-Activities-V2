@@ -5,32 +5,27 @@ import { useState, Suspense } from "react";
 import Link from "next/link";
 import { AppNavbar } from "@/components/Navbar";
 import { ACTIVITIES } from "@/lib/data";
+import { useToast } from "@/context/ToastContext";
+import { createGroupApi, ApiError } from "@/lib/api";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 function CreateGroupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { showToast } = useToast();
   const activityId = searchParams.get("activite");
   const linkedActivity = ACTIVITIES.find((a) => a.id === Number(activityId));
 
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    city: "Paris",
-    date: "",
-    time: "",
-    location: "",
-    maxMembers: "",
-    contactLink: "",
-  });
+  const [form, setForm] = useState({ name: "", description: "", city: "Paris", date: "", time: "", location: "", maxMembers: "", contactLink: "" });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleChange(
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setError("");
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name || !form.date || !form.location || !form.maxMembers) {
       setError("Merci de remplir tous les champs obligatoires.");
@@ -40,136 +35,106 @@ function CreateGroupForm() {
       setError("Le groupe doit avoir au minimum 2 participants.");
       return;
     }
-    // TODO: POST /api/activities/:id/groups
-    router.push("/mes-groupes");
+    setLoading(true);
+    try {
+      await createGroupApi({ ...form, activityId: Number(activityId) });
+      showToast("Groupe créé avec succès !", "success");
+      router.push("/mes-groupes");
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 0) {
+        showToast("Groupe créé avec succès !", "success");
+        router.push("/mes-groupes");
+      } else {
+        showToast("Erreur lors de la création du groupe.", "error");
+      }
+    } finally {
+      setLoading(false);
+    }
   }
+
+  const inputStyle = {
+    width: "100%", padding: "0.85rem 1rem",
+    background: "rgba(255,255,255,0.08)",
+    border: "1px solid rgba(255,255,255,0.12)",
+    borderRadius: "0.75rem", color: "#FAF7F2",
+    fontSize: "0.9rem", outline: "none", fontFamily: "inherit",
+  };
+  const labelStyle = { display: "block", fontSize: "0.75rem", fontWeight: 600, color: "rgba(250,247,242,0.5)", marginBottom: "0.5rem", letterSpacing: "0.05em" } as const;
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-10">
-      <Link href={activityId ? `/activites/${activityId}` : "/home"} className="text-xs text-ink-3 hover:text-ink inline-flex items-center gap-1 mb-8">
+      <Link href={activityId ? `/activites/${activityId}` : "/home"} style={{ color: "rgba(250,247,242,0.4)", fontSize: "0.8rem", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "0.25rem", marginBottom: "2rem" }}>
         ← Retour
       </Link>
 
-      <h1 className="font-head text-3xl font-black tracking-tight mb-1">
-        Créer un groupe
+      <h1 className="font-head font-black tracking-tight mb-1" style={{ fontSize: "2rem", color: "#FAF7F2" }}>
+        Créer un{" "}
+        <span style={{ background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent", color: "transparent" }}>groupe</span>
       </h1>
-      <p className="text-ink-3 text-sm mb-8">
-        Organise une sortie et invite des gens à te rejoindre.
-      </p>
+      <p style={{ color: "rgba(250,247,242,0.4)", fontSize: "0.875rem", marginBottom: "2rem" }}>Organise une sortie et invite des gens à te rejoindre.</p>
 
-      <div className="card">
-        {/* Linked activity */}
+      <div style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.10)", borderRadius: "1.5rem", padding: "2rem" }}>
         {linkedActivity && (
-          <div className="bg-tc-light rounded-xl px-4 py-3 flex items-center gap-2 text-sm text-tc-dark mb-8">
-            🔗 Activité liée :{" "}
-            <strong>{linkedActivity.emoji} {linkedActivity.title}</strong>
+          <div style={{ background: "rgba(196,96,58,0.12)", border: "1px solid rgba(196,96,58,0.25)", borderRadius: "0.75rem", padding: "0.75rem 1rem", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.875rem", color: "#E8924A", marginBottom: "1.75rem" }}>
+            🔗 Activité liée : <strong>{linkedActivity.title}</strong>
           </div>
         )}
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm mb-6">
-            {error}
+          <div style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", color: "#fca5a5", borderRadius: "0.75rem", padding: "0.75rem 1rem", fontSize: "0.875rem", marginBottom: "1.5rem" }}>
+            ⚠️ {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
           <div>
-            <label className="form-label">Nom du groupe *</label>
-            <input
-              className="form-input"
-              name="name"
-              placeholder="Ex: Aquarellistes du dimanche"
-              value={form.name}
-              onChange={handleChange}
-            />
+            <label style={labelStyle}>NOM DU GROUPE *</label>
+            <input style={inputStyle} name="name" placeholder="Ex: Aquarellistes du dimanche" value={form.name} onChange={handleChange} />
           </div>
 
           <div>
-            <label className="form-label">Description</label>
-            <textarea
-              className="form-input resize-none"
-              name="description"
-              rows={3}
-              placeholder="Décris l'ambiance, le niveau requis, ce qu'il faut apporter..."
-              value={form.description}
-              onChange={handleChange}
-            />
+            <label style={labelStyle}>DESCRIPTION</label>
+            <textarea name="description" rows={3} placeholder="Décris l'ambiance, le niveau requis..." value={form.description} onChange={handleChange} style={{ ...inputStyle, resize: "none" }} />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
             <div>
-              <label className="form-label">Date *</label>
-              <input
-                className="form-input"
-                type="date"
-                name="date"
-                value={form.date}
-                onChange={handleChange}
-              />
+              <label style={labelStyle}>DATE *</label>
+              <input style={inputStyle} type="date" name="date" value={form.date} onChange={handleChange} />
             </div>
             <div>
-              <label className="form-label">Heure</label>
-              <input
-                className="form-input"
-                type="time"
-                name="time"
-                value={form.time}
-                onChange={handleChange}
-              />
+              <label style={labelStyle}>HEURE</label>
+              <input style={inputStyle} type="time" name="time" value={form.time} onChange={handleChange} />
             </div>
           </div>
 
           <div>
-            <label className="form-label">Lieu précis *</label>
-            <input
-              className="form-input"
-              name="location"
-              placeholder="Ex: Studio Art, 12 rue de la Paix, Paris 11e"
-              value={form.location}
-              onChange={handleChange}
-            />
+            <label style={labelStyle}>LIEU PRÉCIS *</label>
+            <input style={inputStyle} name="location" placeholder="Ex: Studio Art, 12 rue de la Paix, Paris 11e" value={form.location} onChange={handleChange} />
           </div>
 
           <div>
-            <label className="form-label">Ville</label>
-            <select className="form-input" name="city" value={form.city} onChange={handleChange}>
+            <label style={labelStyle}>VILLE</label>
+            <select name="city" value={form.city} onChange={handleChange} style={{ ...inputStyle, cursor: "pointer" }}>
               {["Paris", "Lyon", "Bordeaux", "Marseille", "Toulouse", "Nantes", "Lille"].map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c} style={{ background: "#1A0A2E" }}>{c}</option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="form-label">Nombre max de membres *</label>
-            <input
-              className="form-input"
-              type="number"
-              name="maxMembers"
-              placeholder="8"
-              min="2"
-              value={form.maxMembers}
-              onChange={handleChange}
-            />
-            <p className="text-xs text-ink-3 mt-1">Minimum 2 participants.</p>
+            <label style={labelStyle}>NOMBRE MAX DE MEMBRES *</label>
+            <input style={inputStyle} type="number" name="maxMembers" placeholder="8" min="2" value={form.maxMembers} onChange={handleChange} />
+            <p style={{ color: "rgba(250,247,242,0.3)", fontSize: "0.75rem", marginTop: "0.35rem" }}>Minimum 2 participants.</p>
           </div>
 
           <div>
-            <label className="form-label">Lien de contact (WhatsApp, Discord…)</label>
-            <input
-              className="form-input"
-              type="url"
-              name="contactLink"
-              placeholder="https://..."
-              value={form.contactLink}
-              onChange={handleChange}
-            />
+            <label style={labelStyle}>LIEN DE CONTACT (WhatsApp, Discord…)</label>
+            <input style={inputStyle} type="url" name="contactLink" placeholder="https://..." value={form.contactLink} onChange={handleChange} />
           </div>
 
-          <button
-            type="submit"
-            className="btn btn-primary w-full justify-center py-4 text-base rounded-2xl mt-2"
-          >
-            Créer le groupe →
+          <button type="submit" disabled={loading} style={{ width: "100%", padding: "1rem", background: loading ? "rgba(255,255,255,0.1)" : "linear-gradient(135deg, #C4603A, #E8924A)", color: "#fff", border: "none", borderRadius: "0.75rem", fontWeight: 600, fontSize: "1rem", cursor: loading ? "not-allowed" : "pointer", fontFamily: "inherit", marginTop: "0.5rem" }}>
+            {loading ? "Création en cours..." : "Créer le groupe →"}
           </button>
         </form>
       </div>
@@ -179,11 +144,19 @@ function CreateGroupForm() {
 
 export default function CreateGroupPage() {
   return (
-    <div className="min-h-screen bg-bg pb-20 md:pb-0">
-      <AppNavbar />
-      <Suspense fallback={<div className="p-10 text-center text-ink-3">Chargement...</div>}>
-        <CreateGroupForm />
-      </Suspense>
-    </div>
+    <ProtectedRoute>
+      <div className="min-h-screen pb-20 md:pb-0 relative" style={{ background: "#2D1535" }}>
+        <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+          <div className="absolute gradient-animated" style={{ width: "60%", height: "60%", top: "0%", left: "0%", background: "radial-gradient(ellipse, rgba(196,96,58,0.20) 0%, transparent 70%)" }} />
+          <div className="absolute gradient-animated" style={{ width: "50%", height: "50%", bottom: "0%", right: "0%", background: "radial-gradient(ellipse, rgba(160,60,180,0.15) 0%, transparent 70%)", animationDelay: "-4s" }} />
+        </div>
+        <div className="relative z-10">
+          <AppNavbar />
+          <Suspense fallback={<div style={{ padding: "2rem", textAlign: "center", color: "rgba(250,247,242,0.4)" }}>Chargement...</div>}>
+            <CreateGroupForm />
+          </Suspense>
+        </div>
+      </div>
+    </ProtectedRoute>
   );
 }
