@@ -38,39 +38,60 @@ export interface User {
 
 export const CATEGORIES = [
   "Tout",
-  "Sport",
-  "Art",
-  "Cuisine",
-  "Musique",
-  "Bien-être",
-  "Tech",
-  "Nature",
+  "Sport & Fitness",
+  "Art & Culture",
+  "Restaurant & Cuisine",
+  "Musique & Événements",
+  "Bien-être & Détente",
+  "Tech & Jeux vidéo",
+  "Nature & Plein air",
+  "Rencontres & Chill",
 ];
 
 export const INTERESTS = [
-  "🎨 Art",
-  "⚽ Sport",
-  "🍳 Cuisine",
-  "🎵 Musique",
-  "📚 Lecture",
-  "🎮 Gaming",
-  "🌿 Nature",
-  "✈️ Voyages",
-  "💻 Tech",
-  "🎭 Théâtre",
-  "📷 Photo",
-  "🧘 Bien-être",
-  "🎸 Guitare",
-  "🏃 Running",
-  "🍷 Gastronomie",
-];
+  "Football",
+  "Running",
+  "Fitness",
+  "Yoga",
+  "Danse",
 
+  "Art",
+  "Photographie",
+  "Théâtre",
+  "Cinéma",
+  "Musées",
+
+  "Cuisine",
+  "Restaurants",
+  "Brunch",
+  "Café",
+
+  "Concerts",
+  "Musique",
+  "Karaoké",
+
+  "Bien-être",
+  "Méditation",
+
+  "Tech",
+  "Gaming",
+  "Intelligence artificielle",
+
+  "Nature",
+  "Randonnée",
+  "Voyages",
+
+  "Lecture",
+  "Jeux de société",
+  "Échange linguistique",
+  "Rencontres sociales",
+];
 export const ACTIVITIES: Activity[] = [
   {
     id: 1,
     image: "/aquarelle.jpg",
     title: "Atelier peinture aquarelle",
-    category: "Art",
+    category: "Art & Culture",
     city: "Paris",
     groupsCount: 3,
     description:
@@ -81,7 +102,7 @@ export const ACTIVITIES: Activity[] = [
     id: 2,
     image: "/football.jpg",
     title: "Foot du dimanche",
-    category: "Sport",
+    category: "Sport & Fitness",
     city: "Paris",
     groupsCount: 5,
     description:
@@ -92,7 +113,7 @@ export const ACTIVITIES: Activity[] = [
     id: 3,
     image: "/cuisine.jpg",
     title: "Cuisine du monde",
-    category: "Cuisine",
+    category: "Restaurant & Cuisine",
     city: "Paris",
     groupsCount: 2,
     description:
@@ -103,7 +124,7 @@ export const ACTIVITIES: Activity[] = [
     id: 4,
     image: "/guitare.jpg",
     title: "Jam session guitar",
-    category: "Musique",
+    category: "Musique & Événements",
     city: "Paris",
     groupsCount: 4,
     description:
@@ -114,7 +135,7 @@ export const ACTIVITIES: Activity[] = [
     id: 5,
     image: "/yoga.jpg",
     title: "Yoga en plein air",
-    category: "Bien-être",
+    category: "Bien-être & Détente",
     city: "Paris",
     groupsCount: 6,
     description:
@@ -125,7 +146,7 @@ export const ACTIVITIES: Activity[] = [
     id: 6,
     image: "/photo.jpg",
     title: "Balade photo urbaine",
-    category: "Art",
+    category: "Art & Culture",
     city: "Paris",
     groupsCount: 2,
     description:
@@ -136,7 +157,7 @@ export const ACTIVITIES: Activity[] = [
     id: 7,
     image: "/coding.jpg",
     title: "Coding and Side projects",
-    category: "Tech",
+    category: "Tech & Jeux vidéo",
     city: "Paris",
     groupsCount: 3,
     description:
@@ -147,7 +168,7 @@ export const ACTIVITIES: Activity[] = [
     id: 8,
     image: "/randonnee.jpg",
     title: "Randonnée en forêt",
-    category: "Nature",
+    category: "Nature & Plein air",
     city: "Paris",
     groupsCount: 4,
     description:
