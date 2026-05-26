@@ -50,7 +50,7 @@ return (
 </div>
 
 <div style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "1.5rem", padding: "2.5rem", backdropFilter: "blur(12px)", textAlign: "center" }}>
-<div style={{ fontSize: "3rem", marginBottom: "1.25rem" }}>🔒</div>
+<div style={{ fontSize: "3rem", marginBottom: "1.25rem" }}></div>
 
 <h1 className="font-head font-black tracking-tight mb-2" style={{ fontSize: "2rem", color: "#FAF7F2" }}>
 Mot de passe{" "}
