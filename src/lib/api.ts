@@ -1,4 +1,6 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+import { Activity } from "@/lib/data";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 
 function getToken(): string | null {
     if (typeof window === "undefined") return null;
@@ -73,6 +75,7 @@ export async function registerApi(form: {
     lastName: string;
     email: string;
     password: string;
+    confirmPassword: string;
     city: string;
 }) {
     return apiRequest<{ token: string; user: object }>("/api/auth/register", {
@@ -89,21 +92,37 @@ export async function forgotPasswordApi(email: string) {
 }
 
 export async function joinGroupApi(groupId: number) {
-    return apiRequest(`/api/activities/${groupId}/join`, { method: "POST" });
+    return apiRequest(`/api/groups/${groupId}/join`, { method: "POST" });
 }
 
 export async function leaveGroupApi(groupId: number) {
-    return apiRequest(`/api/activities/${groupId}/leave`, { method: "DELETE" });
+    return apiRequest(`/api/groups/${groupId}/leave`, { method: "DELETE" });
 }
 
 export async function createGroupApi(data: object) {
-    return apiRequest("/api/activities", { method: "POST", body: JSON.stringify(data) });
+    return apiRequest("/api/groups", { method: "POST", body: JSON.stringify(data) });
 }
 
 export async function deleteGroupApi(groupId: number) {
-    return apiRequest(`/api/activities/${groupId}`, { method: "DELETE" });
+    return apiRequest(`/api/groups/${groupId}`, { method: "DELETE" });
 }
 
-export async function updateProfileApi(userId: number, data: object) {
-    return apiRequest(`/api/users/${userId}`, { method: "PUT", body: JSON.stringify(data) });
+export async function updateProfileApi(data: object) {
+    return apiRequest(`/api/users/me`, { method: "PUT", body: JSON.stringify(data) });
+}
+
+export async function getActivitiesApi(city?: string, category?: string) {
+    const params = new URLSearchParams();
+    if (city) params.append("city", city);
+    if (category) params.append("category", category);
+    const query = params.toString() ? `?${params.toString()}` : "";
+    return apiRequest<Activity[]>(`/api/activities${query}`, { method: "GET" });
+}
+
+export async function getActivityByIdApi(activityId: number) {
+   return apiRequest<Activity>(`/api/activities/${activityId}`, { method: "GET" });
+}
+
+export async function getMyGroupsApi() {
+    return apiRequest("/api/users/me/groups", { method: "GET" });
 }

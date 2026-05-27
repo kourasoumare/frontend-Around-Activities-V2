@@ -35,27 +35,22 @@ function ConnexionForm() {
       return;
     }
 
-    // Mode démo — redirection directe sans backend
-    localStorage.setItem("token", "demo-token");
-    router.push("/home");
-
-    // TODO: décommenter quand le backend est prêt
-    // setLoading(true);
-    // try {
-    //   const data = await loginApi(form.email, form.password);
-    //   localStorage.setItem("token", data.token);
-    //   localStorage.setItem("user", JSON.stringify(data.user));
-    //   router.push("/home");
-    // } catch (err) {
-    //   if (err instanceof ApiError) {
-    //     if (err.status === 401) setError("Email ou mot de passe incorrect.");
-    //     else if (err.status === 0) setError("Erreur de connexion, veuillez réessayer.");
-    //     else setError("Une erreur est survenue, veuillez réessayer plus tard.");
-    //   }
-    // } finally {
-    //   setLoading(false);
-    // }
-  }
+    setLoading(true);
+    try {
+      const data = await loginApi(form.email, form.password);
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      router.push("/home");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.status === 401) setError("Email ou mot de passe incorrect.");
+        else if (err.status === 0) setError("Erreur de connexion, veuillez réessayer.");
+        else setError("Une erreur est survenue, veuillez réessayer plus tard.");
+      }
+    } finally {
+      setLoading(false);
+    }
+    }
 
   const inputStyle = {
     width: "100%", padding: "0.85rem 1rem",

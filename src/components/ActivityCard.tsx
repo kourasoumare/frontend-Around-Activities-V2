@@ -7,6 +7,17 @@ interface ActivityCardProps {
 }
 
 export function ActivityCard({ activity }: ActivityCardProps) {
+  const categoryImages: Record<string, string> = {
+    "Sport & Fitness": "/football.jpg",
+    "Art & Culture": "/aquarelle.jpg",
+    "Restaurant & Cuisine": "/cuisine.jpg",
+    "Musique & Événements": "/guitare.jpg",
+    "Bien-être & Détente": "/yoga.jpg",
+    "Tech & Jeux vidéo": "/coding.jpg",
+    "Nature & Plein air": "/randonnee.jpg",
+    "Rencontres & Chill": "/photo.jpg",
+  };
+  const imageSrc = activity.image_url || categoryImages[activity.category] || "/aquarelle.jpg";
   return (
     <Link href={`/activites/${activity.id}`}>
       <div className="bg-white rounded-2xl overflow-hidden border border-bg-3 cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-tc-light group">
@@ -14,7 +25,7 @@ export function ActivityCard({ activity }: ActivityCardProps) {
         {/* Image */}
         <div className="relative h-44 overflow-hidden">
           <Image
-            src={activity.image}
+            src={imageSrc}
             alt={activity.title}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -39,7 +50,7 @@ export function ActivityCard({ activity }: ActivityCardProps) {
             </span>
 
             <span className="flex items-center gap-1">
-              👥 {activity.groupsCount} groupe{activity.groupsCount > 1 ? "s" : ""}
+              👥 {activity._count?.groups ?? 0} groupe{activity._count?.groups !== 1 ? "s" : ""}
             </span>
           </div>
 

@@ -2,13 +2,34 @@
 
 export interface Activity {
   id: number;
-  image: string;
+  image_url: string | null;
   title: string;
   category: string;
   city: string;
-  groupsCount: number;
   description: string;
-  color: string;
+  _count?: { groups: number };
+  groups?: BackendGroup[];
+}
+
+export interface BackendGroup {
+  id: number;
+  activity_id: number;
+  creator_id: number;
+  name: string;
+  description: string;
+  city: string;
+  meeting_date: string;
+  location: string;
+  max_members: number;
+  contact_link: string | null;
+  created_at: string;
+  users?: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    avatar_url: string | null;
+  };
+  memberships?: { id: number; user_id: number; group_id: number; joined_at: string }[];
 }
 
 export interface Group {
@@ -89,93 +110,95 @@ export const INTERESTS = [
 export const ACTIVITIES: Activity[] = [
   {
     id: 1,
-    image: "/aquarelle.jpg",
+    image_url: "/aquarelle.jpg",
     title: "Atelier peinture aquarelle",
     category: "Art & Culture",
     city: "Paris",
-    groupsCount: 3,
+    _count: { groups: 3 },
     description:
       "Rejoins un groupe de passionné·e·s pour explorer la peinture aquarelle ensemble. Tous niveaux bienvenus — l'important c'est de s'amuser et de rencontrer des gens sympas !",
-    color: "#F0D5C8",
+    //color: "#F0D5C8",
   },
   {
     id: 2,
-    image: "/football.jpg",
+    image_url: "/football.jpg",
     title: "Foot du dimanche",
     category: "Sport & Fitness",
     city: "Paris",
-    groupsCount: 5,
+    _count: { groups: 5 },
     description:
       "Match amical chaque dimanche matin au parc. Tous niveaux, bonne ambiance garantie. On joue pour le plaisir, pas pour gagner.",
-    color: "#D5E8D0",
+    //color: "#D5E8D0",
   },
   {
     id: 3,
-    image: "/cuisine.jpg",
+    image_url: "/cuisine.jpg",
     title: "Cuisine du monde",
     category: "Restaurant & Cuisine",
     city: "Paris",
-    groupsCount: 2,
+    _count: { groups: 2 },
     description:
       "On se retrouve chez un membre pour cuisiner ensemble une recette d'ailleurs. Chaque session, un nouveau pays à explorer.",
-    color: "#FDE8D0",
+    //color: "#FDE8D0",
   },
   {
     id: 4,
-    image: "/guitare.jpg",
+    image_url: "/guitare.jpg",
     title: "Jam session guitar",
     category: "Musique & Événements",
     city: "Paris",
-    groupsCount: 4,
+    _count: { groups: 4 } ,
     description:
       "Musiciens de tous niveaux, on improvise et on s'amuse ! Guitare, basse, voix... tout le monde est le bienvenu.",
-    color: "#E0D5F0",
+    //color: "#E0D5F0",
   },
   {
     id: 5,
-    image: "/yoga.jpg",
+    image_url: "/yoga.jpg",
     title: "Yoga en plein air",
     category: "Bien-être & Détente",
     city: "Paris",
-    groupsCount: 6,
+    _count: { groups: 6 },
     description:
       "Séances de yoga dans les parcs parisiens chaque matin. Pour démarrer la journée du bon pied, entouré·e de gens bienveillants.",
-    color: "#D5EEE8",
+    //color: "#D5EEE8",
   },
   {
     id: 6,
-    image: "/photo.jpg",
+    image_url: "/photo.jpg",
     title: "Balade photo urbaine",
     category: "Art & Culture",
     city: "Paris",
-    groupsCount: 2,
+    _count: { groups: 2 },
     description:
       "On explore la ville appareil en main, partage de tips photo et regards croisés sur la ville. Smartphone ou reflex, peu importe.",
-    color: "#F0D5C8",
+    //color: "#F0D5C8",
   },
   {
     id: 7,
-    image: "/coding.jpg",
+    image_url: "/coding.jpg",
     title: "Coding and Side projects",
     category: "Tech & Jeux vidéo",
     city: "Paris",
-    groupsCount: 3,
+    _count: { groups: 3 } ,
     description:
       "On se retrouve dans un café pour coder sur nos side projects respectifs. Ambiance studieuse et échanges techniques bienvenus.",
-    color: "#D5DCF0",
+    //color: "#D5DCF0",
   },
   {
     id: 8,
-    image: "/randonnee.jpg",
+    image_url: "/randonnee.jpg",
     title: "Randonnée en forêt",
     category: "Nature & Plein air",
     city: "Paris",
-    groupsCount: 4,
+    _count: { groups: 4 },
     description:
       "Escapades vertes le week-end en forêt de Fontainebleau ou dans la vallée de Chevreuse. On respire, on marche, on parle.",
-    color: "#D5E8D0",
+    //color: "#D5E8D0",
   },
 ];
+
+
 
 export const GROUPS: Group[] = [
   {
