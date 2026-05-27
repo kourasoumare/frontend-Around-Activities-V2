@@ -1,20 +1,29 @@
+"use client";
 import Link from "next/link";
 import { AppNavbar } from "@/components/Navbar";
 import { GroupCard } from "@/components/GroupCard";
-import { ACTIVITIES, GROUPS } from "@/lib/data";
-import { notFound } from "next/navigation";
+import { useState, useEffect } from "react";
+import { Activity } from "@/lib/data";
+import { getActivityByIdApi } from "@/lib/api";
+import { useParams, notFound } from "next/navigation";
 
-interface Props {
-  params: Promise<{ id: string }>;
-}
+export default function ActivityDetailPage() {
+  const params = useParams();
+  const id = params.id as string;
+  const [activity, setActivity] = useState<Activity | null>(null);
+  const [loading, setLoading] = useState(true);
 
-export default async function ActivityDetailPage({ params }: Props) {
-  const { id } = await params;
-  const activity = ACTIVITIES.find((a) => a.id === Number(id));
-  if (!activity) notFound();
+  useEffect(() => {
+    const fetchActivity = async () => {
+      const data = await getActivityByIdApi(Number(id));
+      setActivity(data as Activity);
+      setLoading(false);
+    };
+    fetchActivity();
+  }, [id]);
 
-  const groups = GROUPS.filter((g) => g.activityId === activity.id);
-
+  if (loading) return <div>Chargement...</div>;
+  if (!activity) return notFound();
   return (
     <div className="min-h-screen bg-bg pb-20 md:pb-0">
       <AppNavbar />
@@ -29,7 +38,7 @@ export default async function ActivityDetailPage({ params }: Props) {
             ← Explorer / <span className="text-white/80">{activity.title}</span>
           </Link>
 
-          <div className="text-6xl mb-4">{activity.emoji}</div>
+          {/* <div className="text-6xl mb-4">{activity.emoji}</div> */}
           <h1 className="font-head text-4xl md:text-5xl font-black text-white tracking-tight leading-tight mb-5">
             {activity.title}
           </h1>
@@ -38,7 +47,7 @@ export default async function ActivityDetailPage({ params }: Props) {
             <span className="meta-pill">🏷️ {activity.category}</span>
             <span className="meta-pill">📍 {activity.city}</span>
             <span className="meta-pill">
-              👥 {activity.groupsCount} groupe{activity.groupsCount > 1 ? "s" : ""} actif{activity.groupsCount > 1 ? "s" : ""}
+              👥 {activity._count?.groups ?? 0} groupe{activity._count?.groups && activity._count?.groups > 1 ? "s" : ""} actif{activity._count?.groups && activity._count?.groups  > 1 ? "s" : ""}
             </span>
           </div>
         </div>
@@ -63,9 +72,9 @@ export default async function ActivityDetailPage({ params }: Props) {
           </Link>
         </div>
 
-        {groups.length > 0 ? (
+        {(activity.groups ?? []).length > 0 ? (
           <div className="grid md:grid-cols-2 gap-4 mb-10">
-            {groups.map((group) => (
+            {(activity.groups ?? []).map((group) => (
               <GroupCard key={group.id} group={group} />
             ))}
           </div>

@@ -8,6 +8,28 @@ export interface Activity {
   city: string;
   description: string;
   _count?: { groups: number };
+  groups?: BackendGroup[];
+}
+
+export interface BackendGroup {
+  id: number;
+  activity_id: number;
+  creator_id: number;
+  name: string;
+  description: string;
+  city: string;
+  meeting_date: string;
+  location: string;
+  max_members: number;
+  contact_link: string | null;
+  created_at: string;
+  users?: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    avatar_url: string | null;
+  };
+  memberships?: { id: number; user_id: number; group_id: number; joined_at: string }[];
 }
 
 export interface Group {
@@ -175,6 +197,8 @@ export const ACTIVITIES: Activity[] = [
     //color: "#D5E8D0",
   },
 ];
+
+
 
 export const GROUPS: Group[] = [
   {

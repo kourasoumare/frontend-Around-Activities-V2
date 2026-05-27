@@ -120,7 +120,7 @@ export async function getActivitiesApi(city?: string, category?: string) {
 }
 
 export async function getActivityByIdApi(activityId: number) {
-   return apiRequest<Activity[]>(`/api/activities/${activityId}`, { method: "GET" });
+   return apiRequest<Activity>(`/api/activities/${activityId}`, { method: "GET" });
 }
 
 export async function getMyGroupsApi() {
