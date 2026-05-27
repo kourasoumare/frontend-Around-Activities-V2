@@ -3,15 +3,30 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AppNavbar } from "@/components/Navbar";
-import { MY_GROUPS } from "@/lib/data";
+import { useEffect } from "react";
+import { getMyGroupsApi } from "@/lib/api";
 import { useToast } from "@/context/ToastContext";
 import { leaveGroupApi, deleteGroupApi, ApiError } from "@/lib/api";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { MyGroup } from "@/lib/data";
 
 export default function MesGroupesPage() {
   const [activeTab, setActiveTab] = useState<"joined" | "created">("joined");
-  const [groups, setGroups] = useState(MY_GROUPS);
+ const [groups, setGroups] = useState<MyGroup[]>([]);
+ 
   const { showToast } = useToast();
+  const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "{}") : {};
+  useEffect(() => {
+  const fetchMyGroups = async () => {
+    try {
+      const myGroups = await getMyGroupsApi();
+      setGroups(Array.isArray(myGroups) ? myGroups as MyGroup[] : []);
+    } catch (error) {
+      showToast("Erreur lors du chargement des groupes.", "error");
+    }
+  };
+  fetchMyGroups();
+}, []);
 
   async function quitterGroupe(id: number) {
     try {
@@ -45,8 +60,8 @@ export default function MesGroupesPage() {
     }
   }
 
-  const joined = groups.filter((g) => !g.isOrganizer);
-  const created = groups.filter((g) => g.isOrganizer);
+  const joined = groups.filter((g) => g.groups.creator_id !== user.id);
+const created = groups.filter((g) => g.groups.creator_id === user.id);
   const current = activeTab === "joined" ? joined : created;
 
   return (
@@ -87,16 +102,16 @@ export default function MesGroupesPage() {
                 {current.map((group) => (
                   <div key={group.id} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.10)", borderRadius: "1rem", padding: "1.25rem 1.5rem", display: "flex", alignItems: "center", gap: "1rem" }}>
                     <div style={{ width: 44, height: 44, borderRadius: "0.75rem", flexShrink: 0, background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem" }}>
-                      {group.activity.includes("peinture") ? "🎨" : group.activity.includes("Foot") ? "⚽" : group.activity.includes("Cuisine") ? "🍳" : "🧘"}
+                      {group.groups.activities?.category?.includes("Art") ? "🎨" : group.groups.activities?.category?.includes("Sport") ? "⚽" : group.groups.activities?.category?.includes("Cuisine") ? "🍳" : "🧘"}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <h3 style={{ fontWeight: 600, color: "#FAF7F2", marginBottom: "0.2rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{group.name}</h3>
+                      <h3 style={{ fontWeight: 600, color: "#FAF7F2", marginBottom: "0.2rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{group.groups.name}</h3>
                       <p style={{ fontSize: "0.75rem", color: "rgba(250,247,242,0.4)" }}>
-                        {group.activity} · {group.date} · {group.location}
+                        {group.groups.activities?.title} · {group.groups.meeting_date} · {group.groups.location}
                       </p>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
-                      {group.isOrganizer ? (
+                      {group.groups.creator_id === user.id ? (
                         <button onClick={() => supprimerGroupe(group.id)} style={{ padding: "0.4rem 0.9rem", background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", color: "#FCA5A5", borderRadius: "0.5rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "inherit" }}>
                           🗑 Supprimer
                         </button>
