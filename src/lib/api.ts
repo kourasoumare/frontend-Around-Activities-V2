@@ -1,4 +1,6 @@
+import { Activity } from "@/lib/data";
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 
 function getToken(): string | null {
     if (typeof window === "undefined") return null;
@@ -73,6 +75,7 @@ export async function registerApi(form: {
     lastName: string;
     email: string;
     password: string;
+    confirmPassword: string;
     city: string;
 }) {
     return apiRequest<{ token: string; user: object }>("/api/auth/register", {
@@ -113,11 +116,11 @@ export async function getActivitiesApi(city?: string, category?: string) {
     if (city) params.append("city", city);
     if (category) params.append("category", category);
     const query = params.toString() ? `?${params.toString()}` : "";
-    return apiRequest(`/api/activities${query}`, { method: "GET" });
+    return apiRequest<Activity[]>(`/api/activities${query}`, { method: "GET" });
 }
 
 export async function getActivityByIdApi(activityId: number) {
-    return apiRequest(`/api/activities/${activityId}`, { method: "GET" });
+   return apiRequest<Activity[]>(`/api/activities/${activityId}`, { method: "GET" });
 }
 
 export async function getMyGroupsApi() {

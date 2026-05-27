@@ -1,16 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AppNavbar } from "@/components/Navbar";
 import { ActivityCard } from "@/components/ActivityCard";
-import { ACTIVITIES, CATEGORIES, MOCK_USER } from "@/lib/data";
+import { CATEGORIES, Activity } from "@/lib/data";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { getActivitiesApi } from "@/lib/api";
 
 export default function HomePage() {
   const [activeCategory, setActiveCategory] = useState("Tout");
   const [search, setSearch] = useState("");
+  const [activities, setActivities] = useState<Activity[]>([]);
 
-  const filtered = ACTIVITIES.filter((a) => {
+  const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "{}") : {};
+  
+  useEffect(() => {
+    const fetchActivities = async () => {
+      const data = await getActivitiesApi();
+      setActivities(data);
+    };
+    fetchActivities();
+  }, []);
+
+  const filtered = activities.filter((a) => {
     const matchCat = activeCategory === "Tout" || a.category === activeCategory;
     const matchSearch =
       search === "" ||
@@ -37,9 +49,9 @@ export default function HomePage() {
             <div className="max-w-6xl mx-auto relative z-10">
               <p style={{ color: "rgba(250,247,242,0.5)", fontSize: "0.875rem", marginBottom: "0.25rem" }}>Bonjour,</p>
               <h1 className="font-head text-3xl md:text-4xl font-black tracking-tight mb-8" style={{ color: "#FAF7F2" }}>
-                {MOCK_USER.firstName} de{" "}
+                {user.first_name} de{" "}
                 <span style={{ background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent", color: "transparent" }}>
-                  {MOCK_USER.city}
+                  {user.city}
                 </span>
               </h1>
 
@@ -76,7 +88,7 @@ export default function HomePage() {
               <h2 className="font-head text-2xl tracking-tight" style={{ color: "#FAF7F2" }}>
                 {activeCategory === "Tout" ? "Activités populaires" : activeCategory}{" "}
                 <span style={{ color: "rgba(250,247,242,0.4)", fontSize: "1rem", fontWeight: 400, fontFamily: "var(--font-body)" }}>
-                  à {MOCK_USER.city}
+                  à {user.city}
                 </span>
               </h2>
               <span style={{ color: "rgba(250,247,242,0.4)", fontSize: "0.75rem" }}>

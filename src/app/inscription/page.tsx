@@ -44,26 +44,21 @@ export default function InscriptionPage() {
     e.preventDefault();
     if (!validate()) return;
 
-    // Mode démo — redirection directe sans backend
-    localStorage.setItem("token", "demo-token");
-    router.push("/onboarding");
-
-    // TODO: décommenter quand le backend est prêt
-    // setLoading(true);
-    // try {
-    //   const data = await registerApi({ firstName: form.firstName, lastName: form.lastName, email: form.email, password: form.password, city: form.city });
-    //   localStorage.setItem("token", data.token);
-    //   localStorage.setItem("user", JSON.stringify(data.user));
-    //   router.push("/onboarding");
-    // } catch (err) {
-    //   if (err instanceof ApiError) {
-    //     if (err.status === 409) setErrors({ global: "Un compte existe déjà avec cet email." });
-    //     else if (err.status === 0) setErrors({ global: "Erreur de connexion, veuillez réessayer." });
-    //     else setErrors({ global: "Une erreur est survenue, veuillez réessayer plus tard." });
-    //   }
-    // } finally {
-    //   setLoading(false);
-    // }
+    setLoading(true);
+    try {
+      const data = await registerApi({ firstName: form.firstName, lastName: form.lastName, email: form.email, password: form.password, confirmPassword: form.confirmPassword, city: form.city });
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      router.push("/onboarding");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.status === 409) setErrors({ global: "Un compte existe déjà avec cet email." });
+        else if (err.status === 0) setErrors({ global: "Erreur de connexion, veuillez réessayer." });
+        else setErrors({ global: "Une erreur est survenue, veuillez réessayer plus tard." });
+      }
+    } finally {
+      setLoading(false);
+    }
   }
 
   const inputStyle = (field: string) => ({
