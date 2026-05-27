@@ -28,8 +28,24 @@ export interface BackendGroup {
     first_name: string;
     last_name: string;
     avatar_url: string | null;
+    
   };
-  memberships?: { id: number; user_id: number; group_id: number; joined_at: string }[];
+  activities?: {
+  id: number;
+  title: string;
+} | null;
+  memberships?: { 
+  id: number; 
+  user_id: number; 
+  group_id: number; 
+  joined_at: string;
+  users?: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    avatar_url: string | null;
+  };
+}[];
 }
 
 export interface Group {

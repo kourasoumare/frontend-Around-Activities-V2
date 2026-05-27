@@ -1,4 +1,4 @@
-import { Activity } from "@/lib/data";
+import { Activity, BackendGroup } from "@/lib/data";
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 
@@ -125,4 +125,8 @@ export async function getActivityByIdApi(activityId: number) {
 
 export async function getMyGroupsApi() {
     return apiRequest("/api/users/me/groups", { method: "GET" });
+}
+
+export async function getGroupByIdApi(groupId: number) {
+    return apiRequest<BackendGroup>(`/api/groups/${groupId}`, { method: "GET" });
 }
