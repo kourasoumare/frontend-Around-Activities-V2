@@ -28,8 +28,24 @@ export interface BackendGroup {
     first_name: string;
     last_name: string;
     avatar_url: string | null;
+    
   };
-  memberships?: { id: number; user_id: number; group_id: number; joined_at: string }[];
+  activities?: {
+  id: number;
+  title: string;
+} | null;
+  memberships?: { 
+  id: number; 
+  user_id: number; 
+  group_id: number; 
+  joined_at: string;
+  users?: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    avatar_url: string | null;
+  };
+}[];
 }
 
 export interface Group {
@@ -53,6 +69,28 @@ export interface User {
   city: string;
   interests: string[];
   createdAt: string;
+}
+
+export interface MyGroup {
+  id: number;
+  user_id: number;
+  group_id: number;
+  joined_at: string;
+  groups: {
+    id: number;
+    name: string;
+    activity_id: number;
+    creator_id: number;
+    meeting_date: string;
+    location: string;
+    max_members: number;
+    contact_link: string | null;
+    activities?: {
+      id: number;
+      title: string;
+      category: string;
+    } | null;
+  };
 }
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────

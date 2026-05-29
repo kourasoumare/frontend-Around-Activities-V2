@@ -1,12 +1,12 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { AppNavbar } from "@/components/Navbar";
-import { ACTIVITIES } from "@/lib/data";
+import { Activity } from "@/lib/data";
 import { useToast } from "@/context/ToastContext";
-import { createGroupApi, ApiError } from "@/lib/api";
+import { createGroupApi, getActivityByIdApi, ApiError } from "@/lib/api";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 function CreateGroupForm() {
@@ -14,9 +14,15 @@ function CreateGroupForm() {
   const searchParams = useSearchParams();
   const { showToast } = useToast();
   const activityId = searchParams.get("activite");
-  const linkedActivity = ACTIVITIES.find((a) => a.id === Number(activityId));
+  const [linkedActivity, setLinkedActivity] = useState<Activity | null>(null);
 
-  const [form, setForm] = useState({ name: "", description: "", city: "Paris", date: "", time: "", location: "", maxMembers: "", contactLink: "" });
+  useEffect(() => {
+    if (activityId) {
+      getActivityByIdApi(Number(activityId)).then((data) => setLinkedActivity(data as Activity)).catch(() => {});
+    }
+  }, [activityId]);
+
+  const [form, setForm] = useState({ name: "", description: "", city: "Paris", date: "", time: "", location: "", max_members: "", contact_link: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -27,17 +33,36 @@ function CreateGroupForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.name || !form.date || !form.location || !form.maxMembers) {
+    if (!form.name || !form.date || !form.location || !form.max_members) {
       setError("Merci de remplir tous les champs obligatoires.");
       return;
     }
-    if (Number(form.maxMembers) < 2) {
+    if (Number(form.max_members) < 2) {
       setError("Le groupe doit avoir au minimum 2 participants.");
       return;
     }
+
+    // Combine date + time into ISO string
+    const timeStr = form.time || "12:00";
+    const meeting_date = new Date(`${form.date}T${timeStr}:00`);
+    
+    if (isNaN(meeting_date.getTime())) {
+      setError("La date est invalide.");
+      return;
+    }
+
     setLoading(true);
     try {
-      await createGroupApi({ ...form, activityId: Number(activityId) });
+      await createGroupApi({
+        name: form.name,
+        description: form.description,
+        activity_id: Number(activityId),
+        city: form.city,
+        meeting_date: meeting_date.toISOString(),
+        location: form.location,
+        max_members: Number(form.max_members),
+        contact_link: form.contact_link || null,
+      });
       showToast("Groupe créé avec succès !", "success");
       router.push("/mes-groupes");
     } catch (err) {
@@ -69,14 +94,14 @@ function CreateGroupForm() {
 
       <h1 className="font-head font-black tracking-tight mb-1" style={{ fontSize: "2rem", color: "#FAF7F2" }}>
         Créer un{" "}
-        <span style={{ background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent", color: "transparent" }}>groupe</span>
+        <span style={{ background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent" }}>groupe</span>
       </h1>
       <p style={{ color: "rgba(250,247,242,0.4)", fontSize: "0.875rem", marginBottom: "2rem" }}>Organise une sortie et invite des gens à te rejoindre.</p>
 
       <div style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.10)", borderRadius: "1.5rem", padding: "2rem" }}>
         {linkedActivity && (
           <div style={{ background: "rgba(196,96,58,0.12)", border: "1px solid rgba(196,96,58,0.25)", borderRadius: "0.75rem", padding: "0.75rem 1rem", display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.875rem", color: "#E8924A", marginBottom: "1.75rem" }}>
-            🔗 Activité liée : <strong>{linkedActivity.title}</strong>
+            🏷️ Catégorie : <strong>{linkedActivity.category}</strong>
           </div>
         )}
 
@@ -124,13 +149,13 @@ function CreateGroupForm() {
 
           <div>
             <label style={labelStyle}>NOMBRE MAX DE MEMBRES *</label>
-            <input style={inputStyle} type="number" name="maxMembers" placeholder="8" min="2" value={form.maxMembers} onChange={handleChange} />
+            <input style={inputStyle} type="number" name="max_members" placeholder="8" min="2" value={form.max_members} onChange={handleChange} />
             <p style={{ color: "rgba(250,247,242,0.3)", fontSize: "0.75rem", marginTop: "0.35rem" }}>Minimum 2 participants.</p>
           </div>
 
           <div>
             <label style={labelStyle}>LIEN DE CONTACT (WhatsApp, Discord…)</label>
-            <input style={inputStyle} type="url" name="contactLink" placeholder="https://..." value={form.contactLink} onChange={handleChange} />
+            <input style={inputStyle} type="url" name="contact_link" placeholder="https://..." value={form.contact_link} onChange={handleChange} />
           </div>
 
           <button type="submit" disabled={loading} style={{ width: "100%", padding: "1rem", background: loading ? "rgba(255,255,255,0.1)" : "linear-gradient(135deg, #C4603A, #E8924A)", color: "#fff", border: "none", borderRadius: "0.75rem", fontWeight: 600, fontSize: "1rem", cursor: loading ? "not-allowed" : "pointer", fontFamily: "inherit", marginTop: "0.5rem" }}>

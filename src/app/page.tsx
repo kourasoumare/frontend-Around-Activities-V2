@@ -1,189 +1,145 @@
+"use client";
+
 import Link from "next/link";
-import { PublicNavbar } from "@/components/Navbar";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { loginApi, ApiError } from "@/lib/api";
 
 export default function LandingPage() {
+  const router = useRouter();
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setError("");
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.email || !form.password) { setError("Veuillez remplir tous les champs."); return; }
+    setLoading(true);
+    try {
+      const data = await loginApi(form.email, form.password);
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      router.push("/home");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.status === 401) setError("Email ou mot de passe incorrect.");
+        else if (err.status === 0) setError("Erreur de connexion, veuillez réessayer.");
+        else setError("Une erreur est survenue.");
+      }
+    } finally { setLoading(false); }
+  }
+
+  const inputStyle: React.CSSProperties = {
+    width: "100%", padding: "0.85rem 1rem",
+    background: "rgba(255,255,255,0.12)",
+    border: "1px solid rgba(255,255,255,0.2)",
+    borderRadius: "0.75rem", color: "#1a1a2e",
+    fontSize: "0.9rem", outline: "none", fontFamily: "inherit",
+    backdropFilter: "blur(4px)",
+  };
+
   return (
-   <div className="min-h-screen" style={{ background: "#2D1535" }}>
-      <PublicNavbar />
-      {/* ── Hero ────────────────────────────────────────────────────── */}
-      <section className="flex items-center relative px-8 pt-4 pb-8" style={{ background: "transparent" }}>
-        {/* Background glow */}
-        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 70% 90% at 85% 15%, rgba(196,96,58,0.55) 0%, rgba(160,60,180,0.3) 50%, transparent 80%)" }} />
+    <div style={{ minHeight: "100vh", background: "#2D1535" }}>
 
-        <div className="max-w-2xl relative z-10">
-         
-
-          <h1 className="font-head font-black leading-[1.02] tracking-tight mb-8" style={{ fontSize: "clamp(3rem, 7vw, 5.5rem)" }}>
-  <span style={{ color: "#FAF7F2" }}>Nouvelle ville,</span><br />
-<span style={{ color: "#FAF7F2" }}>nouvelles </span>
-<span style={{ background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent", color: "transparent" }}>aventures.</span>
-</h1>
-
-<p style={{ fontSize: "1.1rem", color: "rgba(255,255,255,0.8)", lineHeight: 1.75, marginBottom: "3.5rem", maxWidth: "520px" }}>
-  Trouve des sorties qui te ressemblent, rejoins un groupe et rencontre
-  des personnes qui partagent tes intérêts. Sans prise de tête.
-</p>
-
-          <div className="flex gap-4 flex-wrap">
-            
-          </div>
+      {/* ── Navbar ── */}
+      <nav style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1.25rem 2.5rem" }}>
+        <Link href="/" style={{ display: "flex", alignItems: "center", gap: "0.75rem", textDecoration: "none" }}>
+          <Image src="/logo.png" alt="Around Activities" width={38} height={38} style={{ borderRadius: "50%" }} />
+          <span className="font-head" style={{ fontSize: "1.05rem", fontWeight: 900, color: "#FAF7F2" }}>Around Activities</span>
+        </Link>
+        <div style={{ display: "flex", gap: "0.75rem" }}>
+          <Link href="/connexion" style={{ padding: "0.45rem 1.1rem", borderRadius: "0.75rem", color: "rgba(250,247,242,0.85)", fontSize: "0.85rem", fontWeight: 500, textDecoration: "none", border: "1px solid rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.08)" }}>
+            Se connecter
+          </Link>
+          <Link href="/inscription" style={{ padding: "0.45rem 1.1rem", borderRadius: "0.75rem", background: "linear-gradient(135deg, #C4603A, #E8924A)", color: "#fff", fontSize: "0.85rem", fontWeight: 600, textDecoration: "none" }}>
+            S&apos;inscrire
+          </Link>
         </div>
+      </nav>
 
+      {/* ── Hero — Image plein écran avec texte par-dessus ── */}
+      <div style={{ position: "relative", width: "100%", height: "100vh", minHeight: "600px" }}>
+        {/* Image de fond */}
+        <Image src="/hero.jpg" alt="Jeunes à Paris" fill style={{ objectFit: "cover", objectPosition: "center" }} priority />
         
-      </section>
+        {/* Overlay dégradé */}
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(20,8,30,0.75) 0%, rgba(20,8,30,0.4) 50%, rgba(20,8,30,0.1) 100%)" }} />
 
-
-      {/* ── Problem section ─────────────────────────────────────────── */}
-      <section className="pt-1 pb-20 px-5 max-w-6xl mx-auto">
-
-  <div className="flex items-center gap-2 text-white text-xs font-semibold tracking-widest uppercase mb-4">
-    <div className="w-3 h-0.5 bg-tc" />
-    Le problème
-  </div>
-
-  <h2 className="font-head text-4xl md:text-5xl tracking-tight leading-tight mb-8">
-    <span style={{ color: "#FAF7F2" }}>
-      Arriver quelque part<br />ne devrait{" "}
-    </span>
-    <span style={{ background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-      pas être seul.
-    </span>
-  </h2>
-
-  <p style={{ color: "rgba(250,247,242,0.65)", fontSize: "1.05rem", lineHeight: 1.7, maxWidth: "520px", marginBottom: "2rem" }}>
-    Des milliers d&apos;étudiants et jeunes actifs déménagent chaque année.
-    La plupart passent leurs premiers mois dans l&apos;ennui et la solitude.
-  </p>
-
-  <div className="grid md:grid-cols-3 gap-10 items-start">
-    {[
-  {
-    num: "01",
-    title: "Tu ne sais pas quoi faire",
-    text: "Les grandes villes débordent d'activités, mais sans guidance ça paralyse. Trop de choix, pas de direction.",
-    image: "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=600&q=80",
-  },
-  {
-    num: "02",
-    title: "Tu ne sais pas avec qui",
-    text: "Google te donne des idées, pas des compagnons. Tes amis sont ailleurs. Les apps existantes sont trop formelles.",
-    image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&q=80",
-  },
-  {
-    num: "03",
-    title: "Rencontrer des gens, c'est compliqué",
-    text: "Les réseaux sociaux sont bruyants, Meetup est rigide. Il n'existait pas d'espace dédié aux jeunes.",
-    image: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=600&q=80",
-  },
-          ].map((item) => (
-            <div
-              key={item.num}
-              className="group self-start hover:-translate-y-1 transition-all duration-300 rounded-2xl overflow-hidden relative"
-              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)" }}
-            >
-              {/* Image en overlay au hover */}
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0">
-                <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
-                <div className="absolute inset-0" style={{ background: "rgba(20,10,30,0.75)" }} />
-              </div>
-
-              {/* Contenu toujours visible */}
-              <div className="p-10 relative z-10">
-                <div className="font-head text-7xl font-black leading-none mb-8 transition-colors duration-300"
-                  style={{ color: item.num === "01" ? "#C4603A" : item.num === "02" ? "#B8722E" : "#F0A860" }}>
-                  {item.num}
-                </div>
-                <h3 className="font-semibold text-xl mb-4" style={{ color: "#FAF7F2" }}>{item.title}</h3>
-                <p className="text-sm leading-relaxed" style={{ color: "rgba(250,247,242,0.55)" }}>{item.text}</p>
-              </div>
+        {/* Contenu par-dessus l'image */}
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", padding: "0 5rem" }}>
+          <div style={{ maxWidth: "520px" }}>
+            <h1 className="font-head font-black leading-tight tracking-tight" style={{ fontSize: "clamp(2.5rem, 5vw, 4.5rem)", color: "#FAF7F2", marginBottom: "1rem", textShadow: "0 2px 20px rgba(0,0,0,0.5)" }}>
+              Rencontre.<br />
+              Partage.<br />
+              <span style={{ background: "linear-gradient(135deg, #E8924A, #F0A860)", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                Vis la France.
+              </span>
+            </h1>
+            <p style={{ color: "rgba(250,247,242,0.85)", fontSize: "1.1rem", lineHeight: 1.6, marginBottom: "2rem", textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}>
+              Rejoins des activités près de chez toi<br />et crée des liens authentiques.
+            </p>
+            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+              {[{ icon: "👥", label: "Découvre" }, { icon: "📅", label: "Participe" }, { icon: "❤️", label: "Rencontre" }].map((item) => (
+                <span key={item.label} style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", background: "rgba(255,255,255,0.95)", borderRadius: "9999px", padding: "0.4rem 1rem", fontSize: "0.85rem", color: "#1a1a2e", fontWeight: 600 }}>
+                  {item.icon} {item.label}
+                </span>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── How it works ────────────────────────────────────────────── */}
-      <section className="bg-ink pt-5 pb-32 px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center gap-0 text-white text-xs font-semibold tracking-widest uppercase mb-3">
-            <div className="w-7 h-0.5 bg-tc" />
-            Comment ça marche
           </div>
-          <h2 className="font-head text-4xl md:text-5xl tracking-tight leading-tight mb-20">
-            <span style={{ color: "#FAF7F2" }}>Trois étapes,<br /></span>
-            <span style={{ background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>mille rencontres.</span>
+        </div>
+      </div>
+
+      {/* ── Formulaire de connexion sous l'image ── */}
+      <div style={{ background: "#2D1535", padding: "4rem 2rem" }}>
+        <div style={{ maxWidth: "440px", margin: "0 auto" }}>
+          <h2 className="font-head font-black tracking-tight" style={{ fontSize: "1.75rem", color: "#FAF7F2", textAlign: "center", marginBottom: "0.5rem" }}>
+            Bon <span style={{ background: "linear-gradient(135deg, #C4603A, #E8924A)", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent" }}>retour</span>
           </h2>
+          <p style={{ color: "rgba(250,247,242,0.45)", fontSize: "0.875rem", textAlign: "center", marginBottom: "2rem" }}>
+            Connecte-toi pour retrouver tes groupes.
+          </p>
 
-          <div className="grid md:grid-cols-3 gap-10 items-start">
-            {[
-  {
-    num: "01",
-    title: "Cherche par intérêt",
-    text: "Parcours nos catégories : Sport, Art, Cuisine, Musique, Tech… Trouve ce qui t'inspire.",
-    image: "https://i.pinimg.com/736x/c6/2a/70/c62a709be081d53f3a5755e0d3de5922.jpg",
-  },
-  {
-    num: "02",
-    title: "Rejoins ou crée un groupe",
-    text: "Rejoins un groupe existant ou lance le tien. Tu définis la date, le lieu et l'ambiance.",
-    image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&q=80",
-  },
-  {
-    num: "03",
-    title: "Rencontre des personnes",
-    text: "Vas-y, passe un bon moment, et construis ton réseau naturellement.",
-    image: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=600&q=80",
-  },
-           ].map((step) => (
-              <div key={step.num} className="group self-start hover:-translate-y-1 transition-all duration-300 rounded-2xl overflow-hidden relative h-[280px]"
-                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)" }}>
-                {/* Image en overlay au hover */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0">
-                  <img src={step.image} alt={step.title} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0" style={{ background: "rgba(20,10,30,0.75)" }} />
-                </div>
+          {error && (
+            <div style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", color: "#fca5a5", borderRadius: "0.75rem", padding: "0.75rem 1rem", fontSize: "0.875rem", marginBottom: "1.25rem" }}>
+              ⚠️ {error}
+            </div>
+          )}
 
-                {/* Contenu toujours visible */}
-                <div className="p-10 relative z-10">
-                  <div className="font-head text-7xl font-black leading-none mb-8 transition-colors duration-300"
-                    style={{ color: step.num === "01" ? "#C4603A" : step.num === "02" ? "#B8722E" : "#F0A860" }}>
-                    {step.num}
-                  </div>
-                  <h3 className="font-semibold text-xl mb-4" style={{ color: "#FAF7F2" }}>{step.title}</h3>
-                  <p className="text-sm leading-relaxed" style={{ color: "rgba(250,247,242,0.55)" }}>{step.text}</p>
-                </div>
-              </div>
-            ))}
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <input type="email" name="email" placeholder="Ton adresse email" value={form.email} onChange={handleChange}
+              style={{ ...inputStyle, color: "#FAF7F2", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }} />
+            <input type="password" name="password" placeholder="Mot de passe" value={form.password} onChange={handleChange}
+              style={{ ...inputStyle, color: "#FAF7F2", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }} />
+            
+            <button type="submit" disabled={loading} style={{ width: "100%", padding: "0.9rem", background: loading ? "rgba(255,255,255,0.1)" : "linear-gradient(135deg, #C4603A, #E8924A)", color: "#fff", border: "none", borderRadius: "0.75rem", fontWeight: 600, fontSize: "1rem", cursor: loading ? "not-allowed" : "pointer", fontFamily: "inherit" }}>
+              {loading ? "Connexion..." : "Se connecter →"}
+            </button>
+          </form>
+
+          <div style={{ marginTop: "1.25rem", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem" }}>
+            <Link href="/mot-de-passe-oublie" style={{ color: "rgba(250,247,242,0.4)", fontSize: "0.825rem", textDecoration: "none" }}>
+              Mot de passe oublié ?
+            </Link>
+            <p style={{ color: "rgba(250,247,242,0.4)", fontSize: "0.825rem" }}>
+              Pas encore de compte ?{" "}
+              <Link href="/inscription" style={{ color: "#E8924A", fontWeight: 600, textDecoration: "none" }}>
+                Créer un compte
+              </Link>
+            </p>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* ── CTA Banner ──────────────────────────────────────────────── */}
-      <section className="bg-tc py-15 px-8 text-center">
-        <h2 className="font-head text-4xl md:text-5xl text-white tracking-tight mb-4">
-          Prêt·e à explorer ta ville ?
-        </h2>
-        <p className="text-white/80 mb-8 text-lg">
-          C&apos;est gratuit, c&apos;est simple, et ça peut tout changer.
-        </p>
-      </section>
-
-<div className="bg-tc flex justify-center py-8">
-  <div className="h-24 w-24 md:h-32 md:w-32 rounded-full overflow-hidden opacity-80 hover:opacity-100 transition">
-    <video
-      src="/logo.mp4"
-      autoPlay
-      loop
-      muted
-      playsInline
-      className="h-full w-full object-cover"
-    />
-  </div>
-</div>
-
-      {/* ── Footer ──────────────────────────────────────────────────── */}
-      <footer className="bg-ink text-white/80 text-center py-8 text-sm">
-        <span className="font-head text-white/80">Around Activities</span>
-        {" "}· Fait avec amours pour les nouveaux arrivants · 2026
+      {/* ── Footer ── */}
+      <footer style={{ background: "rgba(0,0,0,0.3)", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "1.5rem", textAlign: "center", color: "rgba(250,247,242,0.3)", fontSize: "0.8rem" }}>
+        <span className="font-head" style={{ color: "rgba(250,247,242,0.45)" }}>Around Activities</span>
+        {" "}· Fait avec ❤️ pour les nouveaux arrivants · 2026
       </footer>
     </div>
   );
