@@ -11,7 +11,7 @@ function validateEmail(email: string) {
 
 export default function InscriptionPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", password: "", confirmPassword: "", city: "Paris" });
+  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", password: "", confirmPassword: "", city: "Paris", origin: "", birthDate: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [cityOpen, setCityOpen] = useState(false);
@@ -25,17 +25,11 @@ export default function InscriptionPage() {
   function validate(): boolean {
     const newErrors: Record<string, string> = {};
     if (!form.firstName || !form.lastName || !form.email || !form.password || !form.confirmPassword || !form.city) {
-      newErrors.global = "Tous les champs sont obligatoires.";
+      newErrors.global = "Tous les champs obligatoires doivent être remplis.";
     }
-    if (form.email && !validateEmail(form.email)) {
-      newErrors.email = "Email invalide.";
-    }
-    if (form.password && form.password.length < 6) {
-      newErrors.password = "Le mot de passe doit contenir au moins 6 caractères.";
-    }
-    if (form.password && form.confirmPassword && form.password !== form.confirmPassword) {
-      newErrors.confirmPassword = "Les mots de passe ne correspondent pas.";
-    }
+    if (form.email && !validateEmail(form.email)) newErrors.email = "Email invalide.";
+    if (form.password && form.password.length < 6) newErrors.password = "Le mot de passe doit contenir au moins 6 caractères.";
+    if (form.password && form.confirmPassword && form.password !== form.confirmPassword) newErrors.confirmPassword = "Les mots de passe ne correspondent pas.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }
@@ -43,7 +37,6 @@ export default function InscriptionPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!validate()) return;
-
     setLoading(true);
     try {
       const data = await registerApi({ firstName: form.firstName, lastName: form.lastName, email: form.email, password: form.password, confirmPassword: form.confirmPassword, city: form.city });
@@ -56,9 +49,7 @@ export default function InscriptionPage() {
         else if (err.status === 0) setErrors({ global: "Erreur de connexion, veuillez réessayer." });
         else setErrors({ global: "Une erreur est survenue, veuillez réessayer plus tard." });
       }
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   }
 
   const inputStyle = (field: string) => ({
@@ -68,7 +59,6 @@ export default function InscriptionPage() {
     borderRadius: "0.75rem", color: "#FAF7F2",
     fontSize: "0.9rem", outline: "none", fontFamily: "inherit",
   });
-
   const labelStyle = { display: "block", fontSize: "0.75rem", fontWeight: 600, color: "rgba(250,247,242,0.5)", marginBottom: "0.5rem", letterSpacing: "0.05em" } as const;
   const fieldError = (field: string) => errors[field] ? <p style={{ color: "#fca5a5", fontSize: "0.75rem", marginTop: "0.35rem" }}>⚠️ {errors[field]}</p> : null;
 
@@ -90,7 +80,7 @@ export default function InscriptionPage() {
         <div style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "1.5rem", padding: "2.5rem", backdropFilter: "blur(12px)" }}>
           <h1 className="font-head font-black tracking-tight mb-1" style={{ fontSize: "2rem", color: "#FAF7F2" }}>
             Bienvenue{" "}
-            <span style={{ background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent", color: "transparent" }}></span>
+            <span style={{ background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent" }}>!</span>
           </h1>
           <p style={{ color: "rgba(250,247,242,0.5)", fontSize: "0.875rem", marginBottom: "2rem" }}>Crée ton compte et commence à explorer.</p>
 
@@ -130,6 +120,16 @@ export default function InscriptionPage() {
               <label style={labelStyle}>CONFIRMER LE MOT DE PASSE *</label>
               <input style={inputStyle("confirmPassword")} type="password" name="confirmPassword" placeholder="••••••••" value={form.confirmPassword} onChange={handleChange} />
               {fieldError("confirmPassword")}
+            </div>
+
+            <div>
+              <label style={labelStyle}>DATE DE NAISSANCE</label>
+              <input style={inputStyle("birthDate")} type="date" name="birthDate" value={form.birthDate} onChange={handleChange} />
+            </div>
+
+            <div>
+              <label style={labelStyle}>PAYS D&apos;ORIGINE</label>
+              <input style={inputStyle("origin")} name="origin" placeholder="Ex: Sénégal, Maroc, Brésil..." value={form.origin} onChange={handleChange} />
             </div>
 
             <div>
