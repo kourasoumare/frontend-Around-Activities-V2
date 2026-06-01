@@ -8,7 +8,7 @@ import { getActivityByIdApi, joinGroupApi, ApiError } from "@/lib/api";
 import { useParams, notFound } from "next/navigation";
 import { useToast } from "@/context/ToastContext";
 
-const CATEGORY_EMOJIS: Record<string, string> = {
+/*const CATEGORY_EMOJIS: Record<string, string> = {
   "Sport & Fitness": "⚽",
   "Art & Culture": "🎨",
   "Restaurant & Cuisine": "🍳",
@@ -17,7 +17,7 @@ const CATEGORY_EMOJIS: Record<string, string> = {
   "Tech & Jeux vidéo": "💻",
   "Nature & Plein air": "🌿",
   "Rencontres & Chill": "📸",
-};
+};*/
 
 export default function ActivityDetailPage() {
   const params = useParams();
@@ -81,7 +81,7 @@ export default function ActivityDetailPage() {
           </Link>
 
           <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "0.75rem" }}>
-            <span style={{ fontSize: "2.5rem" }}>{CATEGORY_EMOJIS[activity.category] || "✨"}</span>
+
             <div>
               <h1 className="font-head font-black tracking-tight" style={{ fontSize: "clamp(2rem, 4vw, 3rem)", color: "#FAF7F2", lineHeight: 1.1 }}>
                 {activity.category}

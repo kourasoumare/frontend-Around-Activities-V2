@@ -107,7 +107,7 @@ export async function deleteGroupApi(groupId: number) {
     return apiRequest(`/api/groups/${groupId}`, { method: "DELETE" });
 }
 
-export async function updateProfileApi(data: object) {
+export async function updateProfileApi(_userId: number, data: { firstName?: string; lastName?: string; city?: string; origin?: string; birthDate?: string; language?: string; interests?: string[] }) {
     return apiRequest(`/api/users/me`, { method: "PUT", body: JSON.stringify(data) });
 }
 
