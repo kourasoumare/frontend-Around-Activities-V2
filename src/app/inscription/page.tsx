@@ -11,7 +11,7 @@ function validateEmail(email: string) {
 
 export default function InscriptionPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", password: "", confirmPassword: "", city: "Paris", origin: "", birthDate: "" });
+  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", password: "", confirmPassword: "", city: "Paris", customCity: "", origin: "", birthDate: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [cityOpen, setCityOpen] = useState(false);
@@ -24,9 +24,11 @@ export default function InscriptionPage() {
 
   function validate(): boolean {
     const newErrors: Record<string, string> = {};
-    if (!form.firstName || !form.lastName || !form.email || !form.password || !form.confirmPassword || !form.city) {
+    const finalCity = form.city === "Autre" ? form.customCity : form.city;
+    if (!form.firstName || !form.lastName || !form.email || !form.password || !form.confirmPassword || !finalCity) {
       newErrors.global = "Tous les champs obligatoires doivent être remplis.";
     }
+    if (form.city === "Autre" && !form.customCity) newErrors.customCity = "Merci de saisir ta ville.";
     if (form.email && !validateEmail(form.email)) newErrors.email = "Email invalide.";
     if (form.password && form.password.length < 6) newErrors.password = "Le mot de passe doit contenir au moins 6 caractères.";
     if (form.password && form.confirmPassword && form.password !== form.confirmPassword) newErrors.confirmPassword = "Les mots de passe ne correspondent pas.";
@@ -38,8 +40,9 @@ export default function InscriptionPage() {
     e.preventDefault();
     if (!validate()) return;
     setLoading(true);
+    const finalCity = form.city === "Autre" ? form.customCity : form.city;
     try {
-      const data = await registerApi({ firstName: form.firstName, lastName: form.lastName, email: form.email, password: form.password, confirmPassword: form.confirmPassword, city: form.city });
+      const data = await registerApi({ firstName: form.firstName, lastName: form.lastName, email: form.email, password: form.password, confirmPassword: form.confirmPassword, city: finalCity });
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       router.push("/onboarding");
@@ -132,6 +135,7 @@ export default function InscriptionPage() {
               <input style={inputStyle("origin")} name="origin" placeholder="Ex: Sénégal, Maroc, Brésil..." value={form.origin} onChange={handleChange} />
             </div>
 
+            {/* Ville */}
             <div>
               <label style={labelStyle}>VILLE *</label>
               <div style={{ position: "relative" }}>
@@ -141,7 +145,7 @@ export default function InscriptionPage() {
                 {cityOpen && (
                   <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, background: "#1A0A2E", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "0.75rem", overflow: "hidden", zIndex: 50 }}>
                     {cities.map((c) => (
-                      <button key={c} type="button" onClick={() => { setForm((prev) => ({ ...prev, city: c })); setCityOpen(false); }}
+                      <button key={c} type="button" onClick={() => { setForm((prev) => ({ ...prev, city: c, customCity: "" })); setCityOpen(false); }}
                         style={{ width: "100%", padding: "0.75rem 1rem", background: form.city === c ? "rgba(196,96,58,0.20)" : "transparent", color: form.city === c ? "#E8924A" : "rgba(250,247,242,0.7)", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem", textAlign: "left", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
                         {form.city === c ? "✓ " : ""}{c}
                       </button>
@@ -149,6 +153,21 @@ export default function InscriptionPage() {
                   </div>
                 )}
               </div>
+
+              {/* Champ libre si "Autre" sélectionné */}
+              {form.city === "Autre" && (
+                <div style={{ marginTop: "0.75rem" }}>
+                  <input
+                    style={inputStyle("customCity")}
+                    name="customCity"
+                    placeholder="Saisie ta ville..."
+                    value={form.customCity}
+                    onChange={handleChange}
+                    autoFocus
+                  />
+                  {fieldError("customCity")}
+                </div>
+              )}
             </div>
 
             <button type="submit" disabled={loading} style={{ width: "100%", padding: "0.9rem", background: loading ? "rgba(255,255,255,0.1)" : "linear-gradient(135deg, #C4603A, #E8924A)", color: "#fff", border: "none", borderRadius: "0.75rem", fontWeight: 600, fontSize: "1rem", cursor: loading ? "not-allowed" : "pointer", fontFamily: "inherit", marginTop: "0.5rem" }}>

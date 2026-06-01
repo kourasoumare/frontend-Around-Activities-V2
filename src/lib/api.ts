@@ -130,3 +130,6 @@ export async function getMyGroupsApi() {
 export async function getGroupByIdApi(groupId: number) {
     return apiRequest<BackendGroup>(`/api/groups/${groupId}`, { method: "GET" });
 }
+export async function getUserByIdApi(userId: number) {
+    return apiRequest<Record<string, unknown>>(`/api/users/${userId}`, { method: "GET" });
+}

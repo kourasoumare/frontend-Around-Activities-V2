@@ -64,11 +64,11 @@ function CreateGroupForm() {
         contact_link: form.contact_link || null,
       });
       showToast("Groupe créé avec succès !", "success");
-      router.push("/mes-groupes");
+      router.push("/mes-groupes?tab=created");
     } catch (err) {
       if (err instanceof ApiError && err.status === 0) {
         showToast("Groupe créé avec succès !", "success");
-        router.push("/mes-groupes");
+        router.push("/mes-groupes?tab=created");
       } else {
         showToast("Erreur lors de la création du groupe.", "error");
       }
