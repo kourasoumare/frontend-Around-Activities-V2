@@ -1,7 +1,6 @@
 import { Activity, BackendGroup } from "@/lib/data";
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-
 function getToken(): string | null {
     if (typeof window === "undefined") return null;
     return localStorage.getItem("token");
@@ -63,7 +62,9 @@ export async function apiRequest<T>(
     return data as T;
 }
 
-export async function loginApi(email: string, password: string) {
+// ── Auth ──────────────────────────────────────────────────────────────────────
+
+export async function loginApi({ email, password }: { email: string; password: string }) {
     return apiRequest<{ token: string; user: object }>("/api/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
@@ -77,6 +78,8 @@ export async function registerApi(form: {
     password: string;
     confirmPassword: string;
     city: string;
+    origin?: string;
+    birthDate?: string;
 }) {
     return apiRequest<{ token: string; user: object }>("/api/auth/register", {
         method: "POST",
@@ -91,25 +94,7 @@ export async function forgotPasswordApi(email: string) {
     });
 }
 
-export async function joinGroupApi(groupId: number) {
-    return apiRequest(`/api/groups/${groupId}/join`, { method: "POST" });
-}
-
-export async function leaveGroupApi(groupId: number) {
-    return apiRequest(`/api/groups/${groupId}/leave`, { method: "DELETE" });
-}
-
-export async function createGroupApi(data: object) {
-    return apiRequest("/api/groups", { method: "POST", body: JSON.stringify(data) });
-}
-
-export async function deleteGroupApi(groupId: number) {
-    return apiRequest(`/api/groups/${groupId}`, { method: "DELETE" });
-}
-
-export async function updateProfileApi(data: object) {
-    return apiRequest(`/api/users/me`, { method: "PUT", body: JSON.stringify(data) });
-}
+// ── Activities ────────────────────────────────────────────────────────────────
 
 export async function getActivitiesApi(city?: string, category?: string) {
     const params = new URLSearchParams();
@@ -120,13 +105,84 @@ export async function getActivitiesApi(city?: string, category?: string) {
 }
 
 export async function getActivityByIdApi(activityId: number) {
-   return apiRequest<Activity>(`/api/activities/${activityId}`, { method: "GET" });
+    return apiRequest<Activity>(`/api/activities/${activityId}`, { method: "GET" });
 }
+
+// ── Groups ────────────────────────────────────────────────────────────────────
+
+export async function getGroupByIdApi(groupId: number) {
+    return apiRequest<BackendGroup>(`/api/groups/${groupId}`, { method: "GET" });
+}
+
+export async function createGroupApi(data: object) {
+    return apiRequest("/api/groups", { method: "POST", body: JSON.stringify(data) });
+}
+
+export async function joinGroupApi(groupId: number) {
+    return apiRequest(`/api/groups/${groupId}/join`, { method: "POST" });
+}
+
+export async function leaveGroupApi(groupId: number) {
+    return apiRequest(`/api/groups/${groupId}/leave`, { method: "DELETE" });
+}
+
+export async function deleteGroupApi(groupId: number) {
+    return apiRequest(`/api/groups/${groupId}`, { method: "DELETE" });
+}
+
+// ── Users ─────────────────────────────────────────────────────────────────────
 
 export async function getMyGroupsApi() {
     return apiRequest("/api/users/me/groups", { method: "GET" });
 }
 
-export async function getGroupByIdApi(groupId: number) {
-    return apiRequest<BackendGroup>(`/api/groups/${groupId}`, { method: "GET" });
+export async function updateProfileApi(data: object) {
+    return apiRequest<{ user: object }>(`/api/users/me`, { method: "PUT", body: JSON.stringify(data) });
+}
+
+export async function getUserByIdApi(userId: number | string) {
+    return apiRequest<object>(`/api/users/${userId}`, { method: "GET" });
+}
+
+// ── Friends ───────────────────────────────────────────────────────────────────
+
+export async function sendFriendRequestApi(userId: number | string) {
+    return apiRequest(`/api/friends/request/${userId}`, { method: "POST" });
+}
+
+export async function acceptFriendRequestApi(requestId: number | string) {
+    return apiRequest(`/api/friends/accept/${requestId}`, { method: "PUT" });
+}
+
+export async function refuseFriendRequestApi(requestId: number | string) {
+    return apiRequest(`/api/friends/refuse/${requestId}`, { method: "PUT" });
+}
+
+export async function getFriendsApi() {
+    return apiRequest<object[]>(`/api/friends`, { method: "GET" });
+}
+
+export async function getFriendRequestsApi() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = await apiRequest<any>(`/api/friends/requests`, { method: "GET" });
+    if (Array.isArray(data)) return data as object[];
+    return (data?.data || data?.requests || []) as object[];
+}
+
+export async function getFriendStatusApi(userId: number | string) {
+    return apiRequest<{ status: string | null; requestId?: number; requesterId?: number }>(`/api/friends/status/${userId}`, { method: "GET" });
+}
+
+// ── Messages ──────────────────────────────────────────────────────────────────
+
+export async function getGroupMessagesApi(groupId: number | string) {
+    return apiRequest<object[]>(`/api/messages/group/${groupId}`, { method: "GET" });
+}
+
+export async function getPrivateMessagesApi(userId: number | string) {
+    return apiRequest<object[]>(`/api/messages/private/${userId}`, { method: "GET" });
+}
+
+export async function sendMessageApi(data: object) {
+    return apiRequest(`/api/messages`, { method: "POST", body: JSON.stringify(data) });
 }

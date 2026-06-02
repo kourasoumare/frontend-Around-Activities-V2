@@ -65,7 +65,7 @@ export default function ActivityDetailPage() {
   const groupCount = groups.length;
 
   return (
-    <div className="min-h-screen pb-20 md:pb-0 relative" style={{ background: "#2D1535" }}>
+    <div className="min-h-screen pb-0 relative" style={{ background: "#2D1535" }}>
       <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
         <div className="absolute gradient-animated" style={{ width: "60%", height: "60%", top: "0%", left: "0%", background: "radial-gradient(ellipse, rgba(196,96,58,0.18) 0%, transparent 70%)" }} />
         <div className="absolute gradient-animated" style={{ width: "50%", height: "50%", bottom: "0%", right: "0%", background: "radial-gradient(ellipse, rgba(160,60,180,0.12) 0%, transparent 70%)", animationDelay: "-4s" }} />

@@ -37,7 +37,7 @@ function ConnexionForm() {
 
     setLoading(true);
     try {
-      const data = await loginApi(form.email, form.password);
+      const data = await loginApi({ email: form.email, password: form.password });
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       router.push("/home");
