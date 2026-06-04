@@ -1,4 +1,4 @@
-import { Activity, BackendGroup } from "@/lib/data";
+import { Activity, BackendGroup, Friend, FriendRequest, FriendStatus, Message } from "@/lib/data";
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 
@@ -77,6 +77,8 @@ export async function registerApi(form: {
     password: string;
     confirmPassword: string;
     city: string;
+    origin?: string;
+    birthDate?: string;
 }) {
     return apiRequest<{ token: string; user: object }>("/api/auth/register", {
         method: "POST",
@@ -132,4 +134,40 @@ export async function getGroupByIdApi(groupId: number) {
 }
 export async function getUserByIdApi(userId: number) {
     return apiRequest<Record<string, unknown>>(`/api/users/${userId}`, { method: "GET" });
+}
+
+export async function sendFriendRequestApi(userId: number) {
+    return apiRequest(`/api/friends/request/${userId}`, { method: "POST" });
+}
+
+export async function acceptFriendRequestApi(requestId: number) {
+    return apiRequest(`/api/friends/accept/${requestId}`, { method: "PUT" });
+}
+
+export async function refuseFriendRequestApi(requestId: number) {
+    return apiRequest(`/api/friends/refuse/${requestId}`, { method: "PUT" });
+}
+
+export async function getFriendsApi() {
+    return apiRequest<Friend[]>("/api/friends", { method: "GET" });
+}
+
+export async function getFriendRequestsApi() {
+    return apiRequest<FriendRequest[]>("/api/friends/requests", { method: "GET" });
+}
+
+export async function getFriendStatusApi(userId: number) {
+    return apiRequest<FriendStatus>(`/api/friends/status/${userId}`, { method: "GET" });
+}
+
+export async function getGroupMessagesApi(groupId: number) {
+    return apiRequest<Message[]>(`/api/messages/group/${groupId}`, { method: "GET" });
+}
+
+export async function getPrivateMessagesApi(userId: number) {
+    return apiRequest<Message[]>(`/api/messages/private/${userId}`, { method: "GET" });
+}
+
+export async function sendMessageApi(data: { content: string; group_id?: number; receiver_id?: number }) {
+    return apiRequest<Message>("/api/messages", { method: "POST", body: JSON.stringify(data) });
 }

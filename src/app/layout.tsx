@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "../styles/globals.css";
 import { ToastProvider } from "@/context/ToastContext";
+import { SocketProvider } from "@/context/SocketContext";
 
 export const metadata: Metadata = {
   title: "Around Activities",
@@ -16,7 +17,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-screen bg-bg font-body antialiased">
         <ToastProvider>
-          {children}
+          <SocketProvider>
+            {children}
+          </SocketProvider>
         </ToastProvider>
       </body>
     </html>

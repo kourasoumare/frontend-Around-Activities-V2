@@ -93,6 +93,51 @@ export interface MyGroup {
   };
 }
 
+export interface Friend {
+  id: number;
+  status: "accepted";
+  friend: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    avatar_url?: string | null;
+  };
+}
+
+export interface FriendRequest {
+  id: number;
+  requester_id: number;
+  receiver_id: number;
+  status: "pending";
+  created_at: string;
+  requester: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    avatar_url?: string | null;
+  };
+}
+
+export interface FriendStatus {
+  status: "none" | "pending" | "accepted" | "refused";
+  request_id?: number;
+  requester_id?: number;
+}
+
+export interface Message {
+  id: number;
+  sender_id: number;
+  content: string;
+  group_id?: number | null;
+  receiver_id?: number | null;
+  created_at: string;
+  sender?: {
+    id: number;
+    first_name: string;
+    last_name: string;
+  };
+}
+
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
 export const CATEGORIES = [

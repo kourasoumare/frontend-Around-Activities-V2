@@ -16,7 +16,15 @@ function MesGroupesContent() {
   const [activeTab, setActiveTab] = useState<"joined" | "created">(tabParam === "created" ? "created" : "joined");
   const [groups, setGroups] = useState<MyGroup[]>([]);
   const { showToast } = useToast();
-  const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "{}") : {};
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      const u = JSON.parse(stored);
+      setCurrentUserId(u.id);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchMyGroups = async () => {
@@ -28,16 +36,16 @@ function MesGroupesContent() {
       }
     };
     fetchMyGroups();
-  }, []);
+  }, [currentUserId]);
 
   async function quitterGroupe(id: number) {
     try {
       await leaveGroupApi(id);
-      setGroups((prev) => prev.filter((g) => g.id !== id));
+      setGroups((prev) => prev.filter((g) => g.groups.id !== id));
       showToast("Vous avez quitté le groupe.", "success");
     } catch (err) {
       if (err instanceof ApiError && err.status === 0) {
-        setGroups((prev) => prev.filter((g) => g.id !== id));
+        setGroups((prev) => prev.filter((g) => g.groups.id !== id));
         showToast("Vous avez quitté le groupe.", "success");
       } else {
         showToast("Impossible de quitter ce groupe.", "error");
@@ -48,11 +56,11 @@ function MesGroupesContent() {
   async function supprimerGroupe(id: number) {
     try {
       await deleteGroupApi(id);
-      setGroups((prev) => prev.filter((g) => g.id !== id));
+      setGroups((prev) => prev.filter((g) => g.groups.id !== id));
       showToast("Groupe supprimé.", "success");
     } catch (err) {
       if (err instanceof ApiError && err.status === 0) {
-        setGroups((prev) => prev.filter((g) => g.id !== id));
+        setGroups((prev) => prev.filter((g) => g.groups.id !== id));
         showToast("Groupe supprimé.", "success");
       } else if (err instanceof ApiError && err.status === 403) {
         showToast("Vous n'êtes pas autorisé à supprimer ce groupe.", "error");
@@ -62,8 +70,8 @@ function MesGroupesContent() {
     }
   }
 
-  const joined = groups.filter((g) => g.groups.creator_id !== user.id);
-  const created = groups.filter((g) => g.groups.creator_id === user.id);
+  const joined = groups.filter((g) => g.groups.creator_id !== currentUserId);
+  const created = groups.filter((g) => g.groups.creator_id === currentUserId);
   const current = activeTab === "joined" ? joined : created;
 
   return (
@@ -102,12 +110,12 @@ function MesGroupesContent() {
                   </p>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
-                  {group.groups.creator_id === user.id ? (
-                    <button onClick={() => supprimerGroupe(group.id)} style={{ padding: "0.4rem 0.9rem", background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", color: "#FCA5A5", borderRadius: "0.5rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "inherit" }}>
+                  {group.groups.creator_id === currentUserId ? (
+                    <button onClick={() => supprimerGroupe(group.groups.id)} style={{ padding: "0.4rem 0.9rem", background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", color: "#FCA5A5", borderRadius: "0.5rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "inherit" }}>
                       🗑 Supprimer
                     </button>
                   ) : (
-                    <button onClick={() => quitterGroupe(group.id)} style={{ padding: "0.4rem 0.9rem", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(250,247,242,0.7)", borderRadius: "0.5rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "inherit" }}>
+                    <button onClick={() => quitterGroupe(group.groups.id)} style={{ padding: "0.4rem 0.9rem", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(250,247,242,0.7)", borderRadius: "0.5rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "inherit" }}>
                       Quitter
                     </button>
                   )}

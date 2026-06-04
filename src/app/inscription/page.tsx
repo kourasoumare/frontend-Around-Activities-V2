@@ -42,7 +42,7 @@ export default function InscriptionPage() {
     setLoading(true);
     const finalCity = form.city === "Autre" ? form.customCity : form.city;
     try {
-      const data = await registerApi({ firstName: form.firstName, lastName: form.lastName, email: form.email, password: form.password, confirmPassword: form.confirmPassword, city: finalCity });
+      const data = await registerApi({ firstName: form.firstName, lastName: form.lastName, email: form.email, password: form.password, confirmPassword: form.confirmPassword, city: finalCity, origin: form.origin, birthDate: form.birthDate });
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       router.push("/onboarding");
