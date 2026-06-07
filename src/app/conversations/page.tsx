@@ -157,35 +157,20 @@ export default function ConversationsPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSend = useCallback(async () => {
+  const handleSend = useCallback(() => {
     const content = newMessage.trim();
     if (!content || !selectedChat) return;
     setNewMessage("");
 
-    const data =
-      selectedChat.type === "group"
-        ? { content, group_id: selectedChat.id }
-        : { content, receiver_id: selectedChat.id };
-
     const socket = socketRef.current;
     if (socket) {
       if (selectedChat.type === "group") {
-        socket.emit("send_message", data);
+        socket.emit("send_message", { content, group_id: selectedChat.id });
       } else {
-        socket.emit("send_private_message", data);
+        socket.emit("send_private_message", { content, receiver_id: selectedChat.id });
       }
     }
-
-    try {
-      const saved = await sendMessageApi(data);
-      setMessages((prev) => {
-        const msg = saved as Message;
-        return prev.some((m) => m.id === msg.id) ? prev : [...prev, msg];
-      });
-    } catch {
-      showToast("Erreur lors de l'envoi.", "error");
-    }
-  }, [newMessage, selectedChat, showToast]);
+  }, [newMessage, selectedChat]);
 
   // ── Sidebar ──────────────────────────────────────────────────────────────────
 
