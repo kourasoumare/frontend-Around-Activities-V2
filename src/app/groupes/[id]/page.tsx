@@ -25,12 +25,16 @@ export default function GroupDetailPage() {
 
   useEffect(() => {
     const fetchGroup = async () => {
-      const data = await getGroupByIdApi(Number(id));
-      setGroup(data);
-      setLoading(false);
-      // Check if already member
-      const isMember = data.memberships?.some((m) => m.user_id === currentUserId);
-      if (isMember) setJoined(true);
+      try {
+        const data = await getGroupByIdApi(Number(id));
+        setGroup(data);
+        const isMember = data.memberships?.some((m) => m.user_id === currentUserId);
+        if (isMember) setJoined(true);
+      } catch {
+        setGroup(null);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchGroup();
   }, [id, currentUserId]);

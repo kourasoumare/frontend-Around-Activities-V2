@@ -30,7 +30,9 @@ function MesGroupesContent() {
     const fetchMyGroups = async () => {
       try {
         const myGroups = await getMyGroupsApi();
-        setGroups(Array.isArray(myGroups) ? myGroups as MyGroup[] : []);
+        const raw = myGroups as any;
+        const arr = Array.isArray(raw) ? raw : raw?.groups ?? [];
+        setGroups(arr as MyGroup[]);
       } catch {
         showToast("Erreur lors du chargement des groupes.", "error");
       }
@@ -41,11 +43,11 @@ function MesGroupesContent() {
   async function quitterGroupe(id: number) {
     try {
       await leaveGroupApi(id);
-      setGroups((prev) => prev.filter((g) => g.groups.id !== id));
+      setGroups((prev) => prev.filter((g) => g.id !== id));
       showToast("Vous avez quitté le groupe.", "success");
     } catch (err) {
       if (err instanceof ApiError && err.status === 0) {
-        setGroups((prev) => prev.filter((g) => g.groups.id !== id));
+        setGroups((prev) => prev.filter((g) => g.id !== id));
         showToast("Vous avez quitté le groupe.", "success");
       } else {
         showToast("Impossible de quitter ce groupe.", "error");
@@ -56,11 +58,11 @@ function MesGroupesContent() {
   async function supprimerGroupe(id: number) {
     try {
       await deleteGroupApi(id);
-      setGroups((prev) => prev.filter((g) => g.groups.id !== id));
+      setGroups((prev) => prev.filter((g) => g.id !== id));
       showToast("Groupe supprimé.", "success");
     } catch (err) {
       if (err instanceof ApiError && err.status === 0) {
-        setGroups((prev) => prev.filter((g) => g.groups.id !== id));
+        setGroups((prev) => prev.filter((g) => g.id !== id));
         showToast("Groupe supprimé.", "success");
       } else if (err instanceof ApiError && err.status === 403) {
         showToast("Vous n'êtes pas autorisé à supprimer ce groupe.", "error");
@@ -70,8 +72,8 @@ function MesGroupesContent() {
     }
   }
 
-  const joined = groups.filter((g) => g.groups.creator_id !== currentUserId);
-  const created = groups.filter((g) => g.groups.creator_id === currentUserId);
+  const joined = groups.filter((g) => g.creator_id !== currentUserId);
+  const created = groups.filter((g) => g.creator_id === currentUserId);
   const current = activeTab === "joined" ? joined : created;
 
   return (
@@ -101,25 +103,25 @@ function MesGroupesContent() {
             {current.map((group) => (
               <div key={group.id} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.10)", borderRadius: "1rem", padding: "1.25rem 1.5rem", display: "flex", alignItems: "center", gap: "1rem" }}>
                 <div style={{ width: 44, height: 44, borderRadius: "0.75rem", flexShrink: 0, background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem" }}>
-                  {group.groups.activities?.category?.includes("Art") ? "🎨" : group.groups.activities?.category?.includes("Sport") ? "⚽" : group.groups.activities?.category?.includes("Cuisine") ? "🍳" : "🧘"}
+                  {group.activities?.category?.includes("Art") ? "🎨" : group.activities?.category?.includes("Sport") ? "⚽" : group.activities?.category?.includes("Cuisine") ? "🍳" : "🧘"}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <h3 style={{ fontWeight: 600, color: "#FAF7F2", marginBottom: "0.2rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{group.groups.name}</h3>
+                  <h3 style={{ fontWeight: 600, color: "#FAF7F2", marginBottom: "0.2rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{group.name}</h3>
                   <p style={{ fontSize: "0.75rem", color: "rgba(250,247,242,0.4)" }}>
-                    {group.groups.activities?.title} · {group.groups.meeting_date} · {group.groups.location}
+                    {group.activities?.title} · {group.meeting_date} · {group.location}
                   </p>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
-                  {group.groups.creator_id === currentUserId ? (
-                    <button onClick={() => supprimerGroupe(group.groups.id)} style={{ padding: "0.4rem 0.9rem", background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", color: "#FCA5A5", borderRadius: "0.5rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "inherit" }}>
+                  {group.creator_id === currentUserId ? (
+                    <button onClick={() => supprimerGroupe(group.id)} style={{ padding: "0.4rem 0.9rem", background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", color: "#FCA5A5", borderRadius: "0.5rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "inherit" }}>
                       🗑 Supprimer
                     </button>
                   ) : (
-                    <button onClick={() => quitterGroupe(group.groups.id)} style={{ padding: "0.4rem 0.9rem", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(250,247,242,0.7)", borderRadius: "0.5rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "inherit" }}>
+                    <button onClick={() => quitterGroupe(group.id)} style={{ padding: "0.4rem 0.9rem", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(250,247,242,0.7)", borderRadius: "0.5rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "inherit" }}>
                       Quitter
                     </button>
                   )}
-                  <Link href={`/groupes/${group.groups.id}`} style={{ padding: "0.4rem 0.9rem", background: "linear-gradient(135deg, #C4603A, #E8924A)", color: "#fff", borderRadius: "0.5rem", fontSize: "0.75rem", fontWeight: 600, textDecoration: "none" }}>
+                  <Link href={`/groupes/${group.id}`} style={{ padding: "0.4rem 0.9rem", background: "linear-gradient(135deg, #C4603A, #E8924A)", color: "#fff", borderRadius: "0.5rem", fontSize: "0.75rem", fontWeight: 600, textDecoration: "none" }}>
                     Voir
                   </Link>
                 </div>

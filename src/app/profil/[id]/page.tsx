@@ -338,11 +338,10 @@ export default function ProfilPage() {
                     </div>
                     {recentGroups.length > 0 ? (
                       <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                        {recentGroups.map((membership) => {
-                          const group = membership.groups;
+                        {recentGroups.map((group) => {
                           const emoji = CATEGORY_EMOJIS[group.activities?.category ?? ""] || "✨";
                           return (
-                            <div key={membership.id} style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.75rem", borderRadius: "0.75rem", background: "rgba(255,255,255,0.04)" }}>
+                            <div key={group.id} style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.75rem", borderRadius: "0.75rem", background: "rgba(255,255,255,0.04)" }}>
                               <div style={{ width: 40, height: 40, borderRadius: "0.625rem", background: "rgba(196,96,58,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.1rem", flexShrink: 0 }}>
                                 {emoji}
                               </div>

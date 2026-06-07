@@ -245,22 +245,21 @@ export default function ConversationsPage() {
           </div>
         ) : (
           groups.map((g) => {
-            const group = g.groups;
             const isSelected =
-              selectedChat?.type === "group" && selectedChat.id === group.id;
+              selectedChat?.type === "group" && selectedChat.id === g.id;
             return (
               <button
                 key={g.id}
-                onClick={() => setSelectedChat({ type: "group", id: group.id, name: group.name })}
+                onClick={() => setSelectedChat({ type: "group", id: g.id, name: g.name })}
                 style={{ width: "100%", display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.7rem", borderRadius: "0.75rem", background: isSelected ? "rgba(196,96,58,0.15)" : "transparent", border: isSelected ? "1px solid rgba(196,96,58,0.25)" : "1px solid transparent", cursor: "pointer", textAlign: "left", fontFamily: "inherit", marginBottom: "0.25rem" }}
               >
                 <div style={{ width: 40, height: 40, borderRadius: "0.75rem", background: "rgba(196,96,58,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.1rem", flexShrink: 0 }}>
-                  {getCategoryEmoji(group.activities?.category)}
+                  {getCategoryEmoji(g.activities?.category)}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontWeight: 600, fontSize: "0.875rem", color: "#FAF7F2", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{group.name}</p>
+                  <p style={{ fontWeight: 600, fontSize: "0.875rem", color: "#FAF7F2", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{g.name}</p>
                   <p style={{ fontSize: "0.72rem", color: "rgba(250,247,242,0.4)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {group.activities?.title ?? group.location}
+                    {g.activities?.title ?? g.location}
                   </p>
                 </div>
               </button>
@@ -288,7 +287,7 @@ export default function ConversationsPage() {
             </button>
             <div style={{ width: 36, height: 36, borderRadius: selectedChat.type === "group" ? "0.625rem" : "50%", background: selectedChat.type === "group" ? "rgba(196,96,58,0.18)" : "linear-gradient(135deg, #7B2FBE, #A855F7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: selectedChat.type === "group" ? "1rem" : "0.72rem", fontWeight: 700, color: "#fff", flexShrink: 0 }}>
               {selectedChat.type === "group"
-                ? getCategoryEmoji(groups.find((g) => g.groups.id === selectedChat.id)?.groups.activities?.category)
+                ? getCategoryEmoji(groups.find((g) => g.id === selectedChat.id)?.activities?.category)
                 : getInitials(selectedChat.name)}
             </div>
             <h2 style={{ fontWeight: 700, color: "#FAF7F2", fontSize: "1rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
