@@ -71,7 +71,9 @@ export default function ConversationsPage() {
     const load = async () => {
       try {
         const [fr, gr] = await Promise.all([getFriendsApi(), getMyGroupsApi()]);
-        setFriends(Array.isArray(fr) ? (fr as Friend[]) : []);
+        const frRaw = fr as any;
+        const frArr = Array.isArray(frRaw) ? frRaw : frRaw?.friends ?? [];
+        setFriends(frArr as Friend[]);
         setGroups(Array.isArray(gr) ? (gr as MyGroup[]) : []);
       } catch {
         showToast("Erreur de chargement.", "error");

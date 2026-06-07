@@ -60,8 +60,9 @@ export default function ProfilPage() {
           setGroups(Array.isArray(myGroups) ? (myGroups as MyGroup[]) : []);
         } else {
           try {
-            const status = await getFriendStatusApi(Number(profileId));
-            setFriendStatus(status);
+            const statusRaw = await getFriendStatusApi(Number(profileId));
+            const raw = statusRaw as any;
+            setFriendStatus(raw?.status ?? raw);
           } catch {
             /* silently fail */
           }
@@ -90,7 +91,7 @@ export default function ProfilPage() {
     setLoadingFriend(true);
     try {
       await sendFriendRequestApi(Number(profileId));
-      setFriendStatus({ status: "pending", requester_id: currentUser.id });
+      setFriendStatus({ status: "pending", requester_id: currentUser.id, request_id: undefined });
     } catch {
       /* silently fail */
     } finally {

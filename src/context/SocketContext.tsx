@@ -33,12 +33,20 @@ export function SocketProvider({ children }: { children: ReactNode }) {
   const socketRef = useRef<Socket | null>(null);
   const pathname = usePathname();
 
+  // Helper pour parser la réponse quelle que soit sa forme
+  function parseRequests(reqs: unknown): FriendRequest[] {
+    if (Array.isArray(reqs)) return reqs as FriendRequest[];
+    const raw = reqs as Record<string, unknown>;
+    if (Array.isArray(raw?.requests)) return raw.requests as FriendRequest[];
+    if (Array.isArray(raw?.data)) return raw.data as FriendRequest[];
+    return [];
+  }
+
   useEffect(() => {
     const token =
       typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
     if (!token) {
-      // Déconnecte si l'utilisateur s'est déconnecté
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
@@ -48,14 +56,13 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Re-fetch les demandes à chaque navigation (garde le badge à jour)
+    // Re-fetch les demandes à chaque navigation
     getFriendRequestsApi()
       .then((reqs) => {
-        if (Array.isArray(reqs)) setPendingRequests(reqs as FriendRequest[]);
+        setPendingRequests(parseRequests(reqs));
       })
       .catch(() => {});
 
-    // Ne crée la socket qu'une seule fois
     if (socketRef.current) return;
 
     const s = io(BASE_URL, {
@@ -65,11 +72,10 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     socketRef.current = s;
     setSocket(s);
 
-    // Quand une demande d'ami arrive en temps réel → re-fetch pour avoir l'objet complet
     s.on("friend_request", () => {
       getFriendRequestsApi()
         .then((reqs) => {
-          if (Array.isArray(reqs)) setPendingRequests(reqs as FriendRequest[]);
+          setPendingRequests(parseRequests(reqs));
         })
         .catch(() => {});
     });

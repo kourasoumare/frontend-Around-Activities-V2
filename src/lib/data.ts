@@ -92,6 +92,12 @@ export interface Friend {
   id: number;
   first_name: string;
   last_name: string;
+  friend?: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    avatar_url: string | null;
+  };
   avatar_url: string | null;
   city?: string;
 }
@@ -107,9 +113,9 @@ export interface FriendRequest {
 }
 
 export interface FriendStatus {
-  status: "pending" | "accepted" | "refused";
-  request_id: number;
-  requester_id: number;
+  status: "pending" | "accepted" | "refused" | "none";
+  request_id?: number;
+  requester_id?: number;
 }
 
 export interface Message {
