@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import { PageShell, Avatar } from "@/components/Navbar";
 import { GroupCard } from "@/components/GroupCard";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { getActivityByIdApi, joinGroupApi, ApiError } from "@/lib/api";
+import { getActivityByIdApi, joinGroupApi, joinActivityApi, leaveActivityApi, getActivityMembersApi, getActivityMessagesApi, ApiError } from "@/lib/api";
 import { Activity, BackendGroup, getCategoryOption, Message } from "@/lib/data";
 import { useToast } from "@/context/ToastContext";
 import { useSocketContext } from "@/context/SocketContext";
@@ -31,15 +31,32 @@ function ActivityDetailContent() {
   const [tab, setTab] = useState<Tab>("about");
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
+  const [isMember, setIsMember] = useState(false);
+  const [memberLoading, setMemberLoading] = useState(false);
+  const [members, setMembers] = useState<{ id: number; first_name: string; last_name: string; avatar_url?: string }[]>([]);
 
   const currentUser = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "{}") : {};
 
   useEffect(() => {
-    getActivityByIdApi(Number(id))
-      .then((data) => setActivity(data as Activity))
+    Promise.all([
+      getActivityByIdApi(Number(id)),
+      getActivityMembersApi(Number(id)),
+      getActivityMessagesApi(Number(id)),
+    ])
+      .then(([activityData, membersData, messagesData]) => {
+        setActivity(activityData as Activity);
+        setMembers(membersData);
+        setMessages(messagesData as Message[]);
+        setIsMember(membersData.some((m) => m.id === currentUser.id));
+      })
       .catch(() => setActivity(null))
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    if (!socket || !isMember) return;
+    socket.emit("join_activity", Number(id));
+  }, [socket, isMember, id]);
 
   useEffect(() => {
     if (tab === "chat" && chatRef.current) {
@@ -59,6 +76,39 @@ function ActivityDetailContent() {
     if (!draft.trim() || !socket) return;
     socket.emit("send_activity_message", { activity_id: Number(id), content: draft.trim() });
     setDraft("");
+  }
+
+  async function handleJoinActivity() {
+    setMemberLoading(true);
+    try {
+      await joinActivityApi(Number(id));
+      setIsMember(true);
+      setMembers((prev) => [...prev, { id: currentUser.id, first_name: currentUser.first_name, last_name: currentUser.last_name }]);
+      socket?.emit("join_activity", Number(id));
+      showToast("Tu as rejoint la communauté !", "success");
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 400) {
+        showToast("Tu es déjà membre.", "error");
+      } else {
+        showToast("Impossible de rejoindre.", "error");
+      }
+    } finally {
+      setMemberLoading(false);
+    }
+  }
+
+  async function handleLeaveActivity() {
+    setMemberLoading(true);
+    try {
+      await leaveActivityApi(Number(id));
+      setIsMember(false);
+      setMembers((prev) => prev.filter((m) => m.id !== currentUser.id));
+      showToast("Tu as quitté la communauté.", "success");
+    } catch {
+      showToast("Impossible de quitter.", "error");
+    } finally {
+      setMemberLoading(false);
+    }
   }
 
   async function handleJoinGroup(groupId: number) {
@@ -94,10 +144,6 @@ function ActivityDetailContent() {
   const category = getCategoryOption(activity.category);
   const cat = category ? { color: category.color, label: category.shortLabel } : { color: "#C4603A", label: activity.category };
   const groups = (activity.groups ?? []) as BackendGroup[];
-  const totalMembers = groups.reduce((a, g) => a + (g.memberships?.length ?? 0), 0);
-  const isCommunityMember = groups.some(
-    (g) => g.creator_id === currentUser.id || g.memberships?.some((m) => m.user_id === currentUser.id),
-  );
 
   return (
     <PageShell variant="activity">
@@ -116,7 +162,7 @@ function ActivityDetailContent() {
           <div className="mt-4 flex flex-wrap items-center gap-5 text-sm text-white/90">
             <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4" /> {activity.city}</span>
             <span className="inline-flex items-center gap-1.5"><Calendar className="h-4 w-4" /> {groups.length} sortie{groups.length !== 1 ? "s" : ""}</span>
-            <span className="inline-flex items-center gap-1.5"><Users className="h-4 w-4" /> {totalMembers} membres</span>
+            <span className="inline-flex items-center gap-1.5"><Users className="h-4 w-4" /> {members.length} membre{members.length !== 1 ? "s" : ""}</span>
           </div>
           <div className="mt-6">
             <button onClick={() => setTab("groups")} className="btn-primary">
@@ -189,7 +235,7 @@ function ActivityDetailContent() {
           )}
 
           {tab === "chat" && (
-            isCommunityMember ? (
+            isMember ? (
               <div className="glass-card flex h-[560px] flex-col">
                 <div className="border-b border-[var(--border)] px-5 py-3 text-sm font-semibold">
                   Chat de la communauté · {activity.title}
@@ -231,9 +277,11 @@ function ActivityDetailContent() {
               </div>
             ) : (
               <div className="glass-card p-10 text-center">
-                <h3 className="font-display text-xl font-bold">Rejoins un groupe pour discuter</h3>
-                <p className="mt-2 text-sm text-[var(--muted-text)]">Le chat est réservé aux membres d'une sortie.</p>
-                <button onClick={() => setTab("groups")} className="btn-primary mt-4">Voir les groupes</button>
+                <h3 className="font-display text-xl font-bold">Rejoins la communauté pour discuter</h3>
+                <p className="mt-2 text-sm text-[var(--muted-text)]">Le chat est réservé aux membres de cette activité.</p>
+                <button onClick={handleJoinActivity} disabled={memberLoading} className="btn-primary mt-4">
+                  Rejoindre la communauté
+                </button>
               </div>
             )
           )}
@@ -242,20 +290,23 @@ function ActivityDetailContent() {
         {/* Sidebar */}
         <aside className="space-y-4">
           <div className="glass-card sticky top-24 p-6">
-            <h3 className="font-display text-lg font-bold">{isCommunityMember ? "Tu es membre" : "Rejoins une sortie"}</h3>
+            <h3 className="font-display text-lg font-bold">{isMember ? "Tu es membre ✓" : "Rejoins la communauté"}</h3>
             <p className="mt-1 text-sm text-[var(--muted-text)]">Discute, participe aux sorties, fais-toi de vrais amis.</p>
-            <button
-              onClick={() => setTab("groups")}
-              className="btn-primary mt-4 w-full"
-            >
-              Voir les groupes
-            </button>
+            {isMember ? (
+              <button onClick={handleLeaveActivity} disabled={memberLoading} className="btn-secondary mt-4 w-full">
+                Quitter la communauté
+              </button>
+            ) : (
+              <button onClick={handleJoinActivity} disabled={memberLoading} className="btn-primary mt-4 w-full">
+                Rejoindre la communauté
+              </button>
+            )}
             <div className="mt-5 space-y-2 text-sm">
               {[
                 { label: "Ville", value: activity.city },
                 { label: "Catégorie", value: cat.label },
                 { label: "Sorties", value: `${groups.length}` },
-                { label: "Membres", value: `${totalMembers}` },
+                { label: "Membres", value: `${members.length}` },
               ].map(({ label, value }) => (
                 <div key={label} className="flex items-center justify-between border-b border-[var(--border)] py-1.5 last:border-0">
                   <span className="text-[var(--muted-text)]">{label}</span>
