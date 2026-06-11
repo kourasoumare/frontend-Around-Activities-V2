@@ -206,3 +206,29 @@ export async function getPrivateMessagesApi(userId: number) {
 export async function sendMessageApi(data: { content: string; group_id?: number; receiver_id?: number }) {
   return apiRequest<Message>("/api/messages", { method: "POST", body: JSON.stringify(data) });
 }
+
+export async function joinActivityApi(activityId: number) {
+  return apiRequest(`/api/activities/${activityId}/join`, { method: "POST" });
+}
+
+export async function leaveActivityApi(activityId: number) {
+  return apiRequest(`/api/activities/${activityId}/leave`, { method: "DELETE" });
+}
+
+export async function getActivityMembersApi(activityId: number) {
+  return apiRequest<{ id: number; first_name: string; last_name: string; avatar_url?: string }[]>(
+    `/api/activities/${activityId}/members`, { method: "GET" }
+  );
+}
+
+export async function getMyActivitiesApi() {
+  return apiRequest<{ joined: Activity[]; created: Activity[] }>("/api/users/me/activities", { method: "GET" });
+}
+
+export async function getActivityMessagesApi(activityId: number) {
+  return apiRequest<Message[]>(`/api/messages/activity/${activityId}`, { method: "GET" });
+}
+
+export async function getMeApi() {
+  return apiRequest("/api/users/me", { method: "GET" });
+}
