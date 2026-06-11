@@ -5,7 +5,7 @@ export interface Activity {
   category: string;
   city: string;
   description: string;
-  _count?: { groups: number };
+  _count?: { groups: number; activity_members?: number };
   groups?: BackendGroup[];
 }
 

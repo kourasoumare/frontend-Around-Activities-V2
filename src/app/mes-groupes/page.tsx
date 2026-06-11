@@ -5,65 +5,28 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { PageShell } from "@/components/Navbar";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { getMyGroupsApi, leaveGroupApi, deleteGroupApi, ApiError } from "@/lib/api";
+import { getMyActivitiesApi } from "@/lib/api";
 import { useToast } from "@/context/ToastContext";
-import { getCategoryOption, MyGroup } from "@/lib/data";
-import { Calendar, MapPin } from "lucide-react";
+import { Activity, getCategoryOption } from "@/lib/data";
+import { MapPin, Users, Calendar } from "lucide-react";
 
-function MesGroupesContent() {
+function MesActivitesContent() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState<"joined" | "created">(tabParam === "created" ? "created" : "joined");
-  const [groups, setGroups] = useState<MyGroup[]>([]);
-  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [joined, setJoined] = useState<Activity[]>([]);
+  const [created, setCreated] = useState<Activity[]>([]);
   const { showToast } = useToast();
 
   useEffect(() => {
-    const stored = localStorage.getItem("user");
-    if (stored) setCurrentUserId(JSON.parse(stored).id);
+    getMyActivitiesApi()
+      .then((data) => {
+        setJoined(data.joined ?? []);
+        setCreated(data.created ?? []);
+      })
+      .catch(() => showToast("Erreur lors du chargement des activités.", "error"));
   }, []);
 
-  useEffect(() => {
-    getMyGroupsApi()
-      .then((raw) => {
-        const arr = Array.isArray(raw) ? raw : (raw as any)?.groups ?? [];
-        setGroups(arr as MyGroup[]);
-      })
-      .catch(() => showToast("Erreur lors du chargement des groupes.", "error"));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUserId]);
-
-  async function quitter(id: number) {
-    try {
-      await leaveGroupApi(id);
-      setGroups((prev) => prev.filter((g) => g.id !== id));
-      showToast("Vous avez quitté le groupe.", "success");
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 0) {
-        setGroups((prev) => prev.filter((g) => g.id !== id));
-        showToast("Vous avez quitté le groupe.", "success");
-      } else {
-        showToast("Impossible de quitter ce groupe.", "error");
-      }
-    }
-  }
-
-  async function supprimer(id: number) {
-    try {
-      await deleteGroupApi(id);
-      setGroups((prev) => prev.filter((g) => g.id !== id));
-      showToast("Groupe supprimé.", "success");
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 403) {
-        showToast("Vous n'êtes pas autorisé à supprimer ce groupe.", "error");
-      } else {
-        showToast("Erreur lors de la suppression.", "error");
-      }
-    }
-  }
-
-  const joined = groups.filter((g) => g.creator_id !== currentUserId);
-  const created = groups.filter((g) => g.creator_id === currentUserId);
   const list = activeTab === "joined" ? joined : created;
 
   return (
@@ -83,7 +46,7 @@ function MesGroupesContent() {
                 : { color: "var(--muted-text)" }
               }
             >
-              {t === "joined" ? `Mes activités rejoints (${joined.length})` : `Mes activités créées (${created.length})`}
+              {t === "joined" ? `Rejointes (${joined.length})` : `Créées (${created.length})`}
             </button>
           ))}
         </div>
@@ -97,13 +60,16 @@ function MesGroupesContent() {
               <Link href="/home" className="btn-primary mt-4 inline-flex">Explorer</Link>
             </div>
           ) : (
-            list.map((g) => {
-              const category = getCategoryOption(g.activities?.category);
-              const cat = category ? { color: category.color, label: category.shortLabel } : { color: "#C4603A", label: "A" };
-              const dateStr = new Date(g.meeting_date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
-              const isCreator = g.creator_id === currentUserId;
+            list.map((a) => {
+              const category = getCategoryOption(a.category);
+              const cat = category
+                ? { color: category.color, label: category.shortLabel }
+                : { color: "#C4603A", label: "A" };
+              const groupCount = a._count?.groups ?? 0;
+              const memberCount = a._count?.activity_members ?? 0;
+
               return (
-                <div key={g.id} className="glass-card glass-card-hover flex flex-col items-stretch gap-4 p-5 sm:flex-row sm:items-center">
+                <div key={a.id} className="glass-card glass-card-hover flex flex-col items-stretch gap-4 p-5 sm:flex-row sm:items-center">
                   <span
                     className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-white font-display text-xl font-bold"
                     style={{ background: cat.color }}
@@ -112,21 +78,17 @@ function MesGroupesContent() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: cat.color }}>
-                      {g.activities?.title ?? "Groupe"}
+                      {cat.label}
                     </p>
-                    <h3 className="truncate font-display text-lg font-bold">{g.name}</h3>
+                    <h3 className="truncate font-display text-lg font-bold">{a.title}</h3>
                     <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-[var(--muted-text)]">
-                      <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" /> {dateStr}</span>
-                      <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {g.location?.split(",")[0]}</span>
+                      <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {a.city}</span>
+                      <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" /> {groupCount} sortie{groupCount !== 1 ? "s" : ""}</span>
+                      <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" /> {memberCount} membre{memberCount !== 1 ? "s" : ""}</span>
                     </div>
                   </div>
                   <div className="flex shrink-0 gap-2">
-                    {isCreator ? (
-                      <button onClick={() => supprimer(g.id)} className="btn-secondary !py-2 text-sm">Supprimer</button>
-                    ) : (
-                      <button onClick={() => quitter(g.id)} className="btn-secondary !py-2 text-sm">Quitter</button>
-                    )}
-                    <Link href={`/groupes/${g.id}`} className="btn-primary !py-2 text-sm">Voir</Link>
+                    <Link href={`/activites/${a.id}`} className="btn-primary !py-2 text-sm">Voir</Link>
                   </div>
                 </div>
               );
@@ -138,7 +100,7 @@ function MesGroupesContent() {
   );
 }
 
-export default function MesGroupesPage() {
+export default function MesActivitesPage() {
   return (
     <ProtectedRoute>
       <Suspense fallback={
@@ -146,7 +108,7 @@ export default function MesGroupesPage() {
           <div className="flex items-center justify-center py-20 text-sm text-[var(--muted-text)]">Chargement…</div>
         </PageShell>
       }>
-        <MesGroupesContent />
+        <MesActivitesContent />
       </Suspense>
     </ProtectedRoute>
   );
