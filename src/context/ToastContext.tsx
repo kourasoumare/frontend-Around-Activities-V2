@@ -49,9 +49,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               minWidth: "280px",
             }}
           >
-            <span style={{ fontSize: "1.1rem" }}>
-              {toast.type === "success" ? "✅" : "❌"}
-            </span>
+            <span style={{
+              width: 8, height: 8, borderRadius: "50%", flexShrink: 0,
+              background: toast.type === "success" ? "#86efac" : "#fca5a5",
+              display: "inline-block",
+            }} />
             {toast.message}
           </div>
         ))}

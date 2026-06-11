@@ -1,205 +1,279 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import { AppNavbar } from "@/components/Navbar";
-import { BackendGroup } from "@/lib/data";
-import { useToast } from "@/context/ToastContext";
-import { joinGroupApi, getGroupByIdApi, leaveGroupApi, deleteGroupApi, ApiError } from "@/lib/api";
+import { useState, useEffect, useRef } from "react";
+import { useParams } from "next/navigation";
+import { PageShell, Avatar } from "@/components/Navbar";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { getGroupByIdApi, getGroupMessagesApi, joinGroupApi, leaveGroupApi, ApiError } from "@/lib/api";
+import { BackendGroup, Message } from "@/lib/data";
+import { useToast } from "@/context/ToastContext";
+import { useSocketContext } from "@/context/SocketContext";
+import { Calendar, MapPin, Users, Send, ChevronLeft, Navigation, Map as MapIcon } from "lucide-react";
 
-const AVATAR_COLORS = ["#C4603A", "#3A7CC4", "#60C43A", "#C43A7C", "#7C3AC4", "#C4A03A"];
+const CAT_CONFIG: Record<string, { color: string; label: string }> = {
+  "Sport & Fitness":      { color: "#4A8C5E", label: "Sport" },
+  "Art & Culture":        { color: "#8E5BA8", label: "Art" },
+  "Restaurant & Cuisine": { color: "#C4603A", label: "Cuisine" },
+  "Musique & Événements": { color: "#D4A547", label: "Musique" },
+  "Bien-être & Détente":  { color: "#6BA89B", label: "Bien-être" },
+  "Tech & Jeux vidéo":    { color: "#4B6CB7", label: "Tech" },
+  "Nature & Plein air":   { color: "#6B8E4E", label: "Nature" },
+  "Rencontres & Chill":   { color: "#C97A8E", label: "Chill" },
+};
 
-export default function GroupDetailPage() {
+function GroupDetailContent() {
   const params = useParams();
-  const router = useRouter();
   const id = params.id as string;
+  const { showToast } = useToast();
+  const { socket } = useSocketContext();
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
   const [group, setGroup] = useState<BackendGroup | null>(null);
   const [loading, setLoading] = useState(true);
-  const [joined, setJoined] = useState(false);
-  const { showToast } = useToast();
+  const [isMember, setIsMember] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [draft, setDraft] = useState("");
 
   const currentUser = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "{}") : {};
-  const currentUserId = currentUser.id;
 
   useEffect(() => {
-    const fetchGroup = async () => {
-      try {
-        const data = await getGroupByIdApi(Number(id));
-        setGroup(data);
-        const isMember = data.memberships?.some((m) => m.user_id === currentUserId);
-        if (isMember) setJoined(true);
-      } catch {
-        setGroup(null);
-      } finally {
-        setLoading(false);
+    getGroupByIdApi(Number(id))
+      .then((data) => {
+        setGroup(data as BackendGroup);
+        const uid = currentUser.id;
+        const member = (data as BackendGroup).memberships?.some((m) => m.user_id === uid) ?? false;
+        setIsMember(member || (data as BackendGroup).creator_id === uid);
+      })
+      .catch(() => setGroup(null))
+      .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  useEffect(() => {
+    getGroupMessagesApi(Number(id))
+      .then((data) => setMessages(Array.isArray(data) ? data : []))
+      .catch(() => setMessages([]));
+  }, [id]);
+
+  useEffect(() => {
+    if (!socket || !group) return;
+    socket.emit("join_group", group.id);
+    socket.on("new_message", (msg: Message) => {
+      if (msg.group_id === group.id) {
+        setMessages((prev) => prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]);
       }
-    };
-    fetchGroup();
-  }, [id, currentUserId]);
+    });
+    return () => { socket.off("new_message"); };
+  }, [socket, group]);
 
-  if (loading) return <div style={{ background: "#2D1535", minHeight: "100vh" }} />;
-  if (!group) return <div className="min-h-screen flex items-center justify-center" style={{ background: "#2D1535" }}><p style={{ color: "rgba(250,247,242,0.4)" }}>Groupe introuvable.</p></div>;
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
-  const membersCount = group.memberships?.length ?? 0;
-  const isFull = membersCount >= group.max_members;
-  const isOrganizer = group.creator_id === currentUserId;
-  const organizer = group.users ? `${group.users.first_name} ${group.users.last_name}` : "Inconnu";
-  const date = new Date(group.meeting_date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
-
-  async function handleJoin() {
+  async function handleJoinLeave() {
     if (!group) return;
     try {
-      await joinGroupApi(group.id);
-      setJoined(true);
-      showToast("Tu as rejoint le groupe !", "success");
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 0) {
-        setJoined(true);
-        showToast("Tu as rejoint le groupe !", "success");
+      if (isMember) {
+        await leaveGroupApi(group.id);
+        setIsMember(false);
+        showToast("Tu as quitté le groupe.", "success");
       } else {
-        showToast("Impossible de rejoindre ce groupe.", "error");
+        await joinGroupApi(group.id);
+        setIsMember(true);
+        showToast("Tu as rejoint le groupe !", "success");
+      }
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 400) {
+        showToast("Tu es déjà membre.", "error");
+      } else {
+        showToast("Erreur.", "error");
       }
     }
   }
 
-  async function handleLeave() {
-    if (!group) return;
-    try {
-      await leaveGroupApi(group.id);
-      setJoined(false);
-      showToast("Tu as quitté le groupe.", "success");
-    } catch {
-      showToast("Impossible de quitter ce groupe.", "error");
-    }
+  function sendMessage() {
+    if (!draft.trim() || !socket || !group) return;
+    socket.emit("send_message", { group_id: group.id, content: draft.trim() });
+    setDraft("");
   }
 
-  async function handleDelete() {
-    if (!group) return;
-    if (!confirm("Supprimer ce groupe définitivement ?")) return;
-    try {
-      await deleteGroupApi(group.id);
-      showToast("Groupe supprimé.", "success");
-      router.push("/mes-groupes");
-    } catch {
-      showToast("Erreur lors de la suppression.", "error");
-    }
-  }
+  if (loading) return (
+    <PageShell variant="group">
+      <div className="flex items-center justify-center py-20 text-sm text-[var(--muted-text)]">Chargement…</div>
+    </PageShell>
+  );
+
+  if (!group) return (
+    <PageShell variant="group">
+      <div className="mx-auto max-w-2xl px-4 py-20 text-center">
+        <div className="glass-card p-10">
+          <h3 className="font-display text-xl font-bold">Groupe introuvable</h3>
+          <Link href="/home" className="btn-primary mt-4 inline-flex">← Explorer</Link>
+        </div>
+      </div>
+    </PageShell>
+  );
+
+  const cat = group.activities ? (CAT_CONFIG[group.activities.category] ?? { color: "#C4603A", label: group.activities.category }) : null;
+  const taken = group.memberships?.length ?? 0;
+  const isCreator = group.creator_id === currentUser.id;
+  const dateStr = new Date(group.meeting_date).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+  const address = encodeURIComponent(`${group.location}, ${group.city}`);
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen pb-20 md:pb-0 relative" style={{ background: "#2D1535" }}>
-        <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
-          <div className="absolute gradient-animated" style={{ width: "60%", height: "60%", top: "0%", left: "0%", background: "radial-gradient(ellipse, rgba(196,96,58,0.20) 0%, transparent 70%)" }} />
-          <div className="absolute gradient-animated" style={{ width: "50%", height: "50%", bottom: "0%", right: "0%", background: "radial-gradient(ellipse, rgba(160,60,180,0.15) 0%, transparent 70%)", animationDelay: "-4s" }} />
+    <PageShell variant="group">
+      <div className="mx-auto max-w-7xl px-4 pt-8 md:px-8">
+        {group.activities ? (
+          <Link href={`/activites/${group.activities.id}`} className="inline-flex items-center gap-1 text-sm text-[var(--muted-text)] hover:text-[var(--foreground)]">
+            <ChevronLeft className="h-4 w-4" /> {group.activities.title}
+          </Link>
+        ) : (
+          <Link href="/home" className="inline-flex items-center gap-1 text-sm text-[var(--muted-text)] hover:text-[var(--foreground)]">
+            <ChevronLeft className="h-4 w-4" /> Explorer
+          </Link>
+        )}
+
+        <div className="mt-3">
+          {cat && <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: cat.color }}>{cat.label}</span>}
+          <h1 className="mt-1 font-display text-4xl font-bold sm:text-5xl">{group.name}</h1>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <span className="pill"><Calendar className="h-3.5 w-3.5" /> {dateStr}</span>
+            <span className="pill"><MapPin className="h-3.5 w-3.5" /> {group.location}</span>
+            <span className="pill"><Users className="h-3.5 w-3.5" /> {taken} / {group.max_members}</span>
+          </div>
         </div>
 
-        <div className="relative z-10">
-          <AppNavbar />
-
-          <div className="px-8 pt-10 pb-20 relative overflow-hidden">
-            <div className="max-w-3xl mx-auto relative z-10">
-              <Link href={`/activites/${group.activity_id}`} style={{ display: "flex", alignItems: "center", gap: "0.25rem", color: "rgba(250,247,242,0.4)", fontSize: "0.875rem", textDecoration: "none", marginBottom: "1.5rem" }}>
-                ← Retour à {group.activities?.title ?? "l'activité"}
-              </Link>
-
-              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", marginBottom: "1.25rem" }}>
-                <h1 className="font-head font-black tracking-tight" style={{ fontSize: "2.5rem", color: "#FAF7F2", lineHeight: 1.1 }}>
-                  {group.name}
-                </h1>
-                {isOrganizer && (
-                  <button onClick={handleDelete} style={{ flexShrink: 0, padding: "0.4rem 0.9rem", background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)", color: "#fca5a5", borderRadius: "0.5rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "inherit" }}>
-                    🗑 Supprimer
-                  </button>
+        <div className="mt-8 grid gap-6 md:grid-cols-[1fr_320px]">
+          <div className="space-y-6">
+            {/* Group chat */}
+            <div className="glass-card flex h-[420px] flex-col">
+              <div className="border-b border-[var(--border)] px-5 py-3 text-sm font-semibold">Chat du groupe</div>
+              <div className="flex-1 space-y-3 overflow-y-auto p-5">
+                {messages.length === 0 && (
+                  <div className="py-8 text-center text-sm text-[var(--muted-text)]">
+                    {isMember ? "Sois le premier à écrire !" : "Rejoins le groupe pour écrire."}
+                  </div>
                 )}
+                {messages.map((m, i) => {
+                  const isMe = m.sender_id === currentUser.id;
+                  return (
+                    <div key={i} className={`flex items-end gap-2 ${isMe ? "justify-end" : ""}`}>
+                      {!isMe && <Avatar name={m.sender?.first_name ?? "?"} size={28} />}
+                      <div
+                        className={`max-w-[70%] rounded-2xl px-4 py-2 text-sm ${isMe ? "text-white" : "bg-white/80"}`}
+                        style={isMe ? { background: "var(--gradient-primary)" } : undefined}
+                      >
+                        {!isMe && <p className="mb-0.5 text-xs font-semibold opacity-70">{m.sender?.first_name}</p>}
+                        {m.content}
+                      </div>
+                    </div>
+                  );
+                })}
+                <div ref={chatEndRef} />
+              </div>
+              {isMember ? (
+                <form
+                  className="flex items-center gap-2 border-t border-[var(--border)] p-3"
+                  onSubmit={(e) => { e.preventDefault(); sendMessage(); }}
+                >
+                  <input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Écris un message…" className="field !py-2.5" />
+                  <button className="btn-primary !p-3"><Send className="h-4 w-4" /></button>
+                </form>
+              ) : (
+                <div className="border-t border-[var(--border)] p-3 text-center text-sm text-[var(--muted-text)]">
+                  Rejoins le groupe pour participer au chat
+                </div>
+              )}
+            </div>
+
+            {/* About */}
+            <div className="glass-card p-6">
+              <h2 className="font-display text-xl font-bold">À propos de cette sortie</h2>
+              <p className="mt-2 text-[var(--muted-text)]">{group.description}</p>
+            </div>
+
+            {/* Members */}
+            {group.memberships && group.memberships.length > 0 && (
+              <div className="glass-card p-6">
+                <h2 className="font-display text-xl font-bold">Membres ({taken})</h2>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  {group.memberships.map((m) => {
+                    const u = m.users ?? { id: m.user_id, first_name: "?", last_name: "" };
+                    const name = `${(u as any).first_name ?? ""} ${(u as any).last_name ?? ""}`.trim();
+                    return (
+                      <Link
+                        key={m.id}
+                        href={`/profil/${m.user_id}`}
+                        className="flex items-center gap-2 rounded-full bg-white/70 py-1.5 pl-1.5 pr-4 hover:bg-white"
+                      >
+                        <Avatar name={name || "?"} size={32} />
+                        <span className="text-sm font-medium">{(u as any).first_name}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <aside>
+            <div className="glass-card sticky top-24 p-6">
+              {isCreator ? (
+                <span className="pill pill-active mb-3 w-full justify-center" style={{ background: "var(--gradient-primary)" }}>
+                  Tu es organisateur
+                </span>
+              ) : (
+                <button onClick={handleJoinLeave} className={`w-full ${isMember ? "btn-secondary" : "btn-primary"}`}>
+                  {isMember ? "Quitter le groupe" : "Rejoindre"}
+                </button>
+              )}
+
+              <div className="mt-5 grid gap-2">
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${address}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn-secondary w-full justify-start !py-2.5 text-sm"
+                >
+                  <MapIcon className="h-4 w-4" /> Ouvrir dans Maps
+                </a>
+                <a
+                  href={`https://citymapper.com/directions?endname=${address}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn-secondary w-full justify-start !py-2.5 text-sm"
+                >
+                  <Navigation className="h-4 w-4" /> Itinéraire CityMapper
+                </a>
               </div>
 
-              <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+              <div className="mt-6 space-y-2 text-sm">
                 {[
-                  { icon: "📅", text: date },
-                  { icon: "📍", text: group.location },
-                  { icon: "👥", text: `${membersCount}/${group.max_members} membres` },
-                ].map((pill) => (
-                  <span key={pill.text} style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", background: "rgba(255,255,255,0.08)", borderRadius: "9999px", padding: "0.375rem 0.75rem", fontSize: "0.75rem", color: "rgba(250,247,242,0.80)" }}>
-                    {pill.icon} {pill.text}
-                  </span>
+                  { label: "Quand", value: new Date(group.meeting_date).toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" }) },
+                  { label: "Lieu", value: group.location },
+                  { label: "Ville", value: group.city },
+                  { label: "Places", value: `${group.max_members - taken} restantes` },
+                ].map(({ label, value }) => (
+                  <div key={label} className="flex items-start justify-between gap-3 border-b border-[var(--border)] py-1.5 last:border-0">
+                    <span className="text-[var(--muted-text)]">{label}</span>
+                    <span className="text-right font-medium">{value}</span>
+                  </div>
                 ))}
               </div>
             </div>
-          </div>
-
-          <div className="max-w-3xl mx-auto px-8 -mt-8 relative z-10" style={{ display: "flex", flexDirection: "column", gap: "1.25rem", paddingBottom: "3rem" }}>
-
-            {/* Description */}
-            <div style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.10)", borderRadius: "1.5rem", padding: "1.75rem" }}>
-              <h2 style={{ fontWeight: 600, color: "#FAF7F2", marginBottom: "0.75rem" }}>Description</h2>
-              <p style={{ color: "rgba(250,247,242,0.6)", fontSize: "0.9rem", lineHeight: 1.7, marginBottom: "1.25rem" }}>{group.description}</p>
-              <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "1rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div>
-                  <p style={{ fontSize: "0.75rem", color: "rgba(250,247,242,0.4)", marginBottom: "0.2rem" }}>Organisateur</p>
-                  <Link href={`/profil/${group.creator_id}`} style={{ fontWeight: 600, fontSize: "0.875rem", color: "#FAF7F2", textDecoration: "none" }}>
-                    {organizer} →
-                  </Link>
-                </div>
-                {group.contact_link && (
-                  <a href={group.contact_link} target="_blank" rel="noopener noreferrer" style={{ padding: "0.4rem 1rem", background: "rgba(196,96,58,0.15)", border: "1px solid rgba(196,96,58,0.3)", color: "#E8924A", borderRadius: "0.5rem", fontSize: "0.78rem", fontWeight: 600, textDecoration: "none" }}>
-                    💬 Contact
-                  </a>
-                )}
-              </div>
-            </div>
-
-            {/* Membres */}
-            <div style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.10)", borderRadius: "1.5rem", padding: "1.75rem" }}>
-              <h2 style={{ fontWeight: 600, color: "#FAF7F2", marginBottom: "1rem" }}>
-                Membres <span style={{ color: "rgba(250,247,242,0.4)", fontSize: "0.875rem", fontWeight: 400 }}>({membersCount}/{group.max_members})</span>
-              </h2>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem" }}>
-                {(group.memberships ?? []).map((membership, i) => {
-                  const name = `${membership.users?.first_name ?? ""} ${membership.users?.last_name ?? ""}`.trim();
-                  const memberId = membership.user_id;
-                  return (
-                    <Link key={membership.id} href={`/profil/${memberId}`} style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "9999px", padding: "0.35rem 0.9rem 0.35rem 0.35rem", textDecoration: "none", transition: "background 0.15s" }}>
-                      <div style={{ width: 28, height: 28, borderRadius: "50%", background: AVATAR_COLORS[i % AVATAR_COLORS.length], display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "0.65rem", fontWeight: 700 }}>
-                        {name.split(" ").map((x) => x[0]).join("")}
-                      </div>
-                      <span style={{ fontSize: "0.82rem", color: "rgba(250,247,242,0.8)" }}>{name}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Bouton action */}
-            {isOrganizer ? (
-              <div style={{ background: "rgba(196,96,58,0.08)", border: "1px solid rgba(196,96,58,0.2)", borderRadius: "1.5rem", padding: "1.25rem", textAlign: "center", color: "#E8924A", fontSize: "0.875rem", fontWeight: 500 }}>
-                👑 Tu es l&apos;organisateur de ce groupe
-              </div>
-            ) : joined ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                <div style={{ background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.3)", borderRadius: "1.5rem", padding: "1.25rem", textAlign: "center", color: "#86efac", fontWeight: 600 }}>
-                  ✅ Tu es membre de ce groupe ! Check le lien de contact pour la suite.
-                </div>
-                <button onClick={handleLeave} style={{ width: "100%", padding: "0.75rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(250,247,242,0.5)", borderRadius: "1.5rem", fontWeight: 500, fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit" }}>
-                  Quitter ce groupe
-                </button>
-              </div>
-            ) : isFull ? (
-              <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "1.5rem", padding: "1.25rem", textAlign: "center", color: "rgba(250,247,242,0.4)" }}>
-                Ce groupe est complet.{" "}
-                <Link href={`/activites/${group.activity_id}`} style={{ color: "#E8924A", fontWeight: 600, textDecoration: "none" }}>
-                  Voir d&apos;autres groupes
-                </Link>
-              </div>
-            ) : (
-              <button onClick={handleJoin} style={{ width: "100%", padding: "1rem", background: "linear-gradient(135deg, #C4603A, #E8924A)", color: "#fff", border: "none", borderRadius: "1.5rem", fontWeight: 600, fontSize: "1rem", cursor: "pointer", fontFamily: "inherit" }}>
-                Rejoindre ce groupe
-              </button>
-            )}
-          </div>
+          </aside>
         </div>
       </div>
+    </PageShell>
+  );
+}
+
+export default function GroupDetailPage() {
+  return (
+    <ProtectedRoute>
+      <GroupDetailContent />
     </ProtectedRoute>
   );
 }

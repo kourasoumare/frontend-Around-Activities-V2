@@ -1,146 +1,145 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { AppNavbar } from "@/components/Navbar";
-import { Activity } from "@/lib/data";
+import { useState, useEffect, useMemo } from "react";
+import { PageShell, SearchBar, CreateButton } from "@/components/Navbar";
+import { ActivityCard } from "@/components/ActivityCard";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { getActivitiesApi } from "@/lib/api";
+import { Activity } from "@/lib/data";
 
-const CATEGORY_IMAGES: Record<string, string> = {
-  "Sport & Fitness": "/football.jpg",
-  "Art & Culture": "/aquarelle.jpg",
-  "Restaurant & Cuisine": "/cuisine.jpg",
-  "Musique & Événements": "/guitare.jpg",
-  "Bien-être & Détente": "/yoga.jpg",
-  "Tech & Jeux vidéo": "/coding.jpg",
-  "Nature & Plein air": "/randonnee.jpg",
-  "Rencontres & Chill": "/photo.jpg",
-};
+const CATEGORIES = [
+  { id: "Sport & Fitness",       label: "Sport",     color: "#4A8C5E" },
+  { id: "Art & Culture",         label: "Art",       color: "#8E5BA8" },
+  { id: "Restaurant & Cuisine",  label: "Cuisine",   color: "#C4603A" },
+  { id: "Musique & Événements",  label: "Musique",   color: "#D4A547" },
+  { id: "Bien-être & Détente",   label: "Bien-être", color: "#6BA89B" },
+  { id: "Tech & Jeux vidéo",     label: "Tech",      color: "#4B6CB7" },
+  { id: "Nature & Plein air",    label: "Nature",    color: "#6B8E4E" },
+  { id: "Rencontres & Chill",    label: "Chill",     color: "#C97A8E" },
+];
 
-const CATEGORY_EMOJIS: Record<string, string> = {
-  "Sport & Fitness": "⚽",
-  "Art & Culture": "🎨",
-  "Restaurant & Cuisine": "🍳",
-  "Musique & Événements": "🎵",
-  "Bien-être & Détente": "🧘",
-  "Tech & Jeux vidéo": "💻",
-  "Nature & Plein air": "🌿",
-  "Rencontres & Chill": "📸",
-};
+const CITIES = ["Toutes", "Paris", "Lyon", "Bordeaux", "Marseille", "Toulouse", "Nantes", "Lille", "Strasbourg", "Rennes", "Montpellier"];
 
-export default function HomePage() {
+function HomeContent() {
   const [activities, setActivities] = useState<Activity[]>([]);
-  const [search, setSearch] = useState("");
-
-  const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "{}") : {};
+  const [loading, setLoading] = useState(true);
+  const [q, setQ] = useState("");
+  const [activeCat, setActiveCat] = useState<string | null>(null);
+  const [cityFilter, setCityFilter] = useState("Toutes");
+  const [currentUser, setCurrentUser] = useState<{ first_name?: string; firstName?: string; city?: string } | null>(null);
 
   useEffect(() => {
-    const fetchActivities = async () => {
-      const data = await getActivitiesApi();
-      setActivities(data);
-    };
-    fetchActivities();
+    const stored = localStorage.getItem("user");
+    if (stored) setCurrentUser(JSON.parse(stored));
   }, []);
 
-  const filtered = activities.filter((a) =>
-    search === "" || a.category.toLowerCase().includes(search.toLowerCase())
-  );
+  useEffect(() => {
+    setLoading(true);
+    const city = cityFilter !== "Toutes" ? cityFilter : undefined;
+    const cat = activeCat ?? undefined;
+    getActivitiesApi(city, cat)
+      .then((data) => setActivities(Array.isArray(data) ? data : []))
+      .catch(() => setActivities([]))
+      .finally(() => setLoading(false));
+  }, [cityFilter, activeCat]);
+
+  const filtered = useMemo(() => {
+    if (!q.trim()) return activities;
+    const ql = q.toLowerCase();
+    return activities.filter(
+      (a) => a.title.toLowerCase().includes(ql) || a.city.toLowerCase().includes(ql) || a.description?.toLowerCase().includes(ql),
+    );
+  }, [activities, q]);
+
+  const firstName = currentUser?.first_name ?? currentUser?.firstName ?? "toi";
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen pb-20 md:pb-0 relative" style={{ background: "#2D1535" }}>
-        <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
-          <div className="absolute gradient-animated" style={{ width: "60%", height: "60%", top: "0%", left: "0%", background: "radial-gradient(ellipse, rgba(196,96,58,0.20) 0%, transparent 70%)" }} />
-          <div className="absolute gradient-animated" style={{ width: "60%", height: "60%", top: "30%", left: "20%", background: "radial-gradient(ellipse, rgba(160,60,180,0.15) 0%, transparent 70%)", animationDelay: "-3s" }} />
+    <PageShell variant="home">
+      <div className="mx-auto max-w-7xl px-4 pt-8 md:px-8">
+        {/* Greeting */}
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-sm text-[var(--muted-text)]">Bienvenue{currentUser?.city ? ` à ${currentUser.city}` : ""}</p>
+            <h1 className="font-display text-4xl font-bold sm:text-5xl">
+              Salut <span className="text-grad">{firstName}</span>
+            </h1>
+            <p className="mt-2 max-w-xl text-[var(--muted-text)]">Voici les communautés qui bougent près de toi.</p>
+          </div>
         </div>
 
-        <div className="relative z-10">
-          <AppNavbar />
+        {/* Search + Create */}
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <SearchBar value={q} onChange={setQ} />
+          <CreateButton href="/activites/creer" label="Créer une activité" />
+        </div>
 
-          <div className="px-8 pt-10 pb-16 relative overflow-hidden">
-            <div className="max-w-6xl mx-auto relative z-10">
-              <p style={{ color: "rgba(250,247,242,0.5)", fontSize: "0.875rem", marginBottom: "0.25rem" }}>Bonjour,</p>
-              <h1 className="font-head font-black tracking-tight mb-6" style={{ fontSize: "clamp(1.75rem, 3vw, 2.5rem)", color: "#FAF7F2" }}>
-                {user.first_name ? `${user.first_name} de` : "Bienvenue depuis"}{" "}
-                <span style={{ background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                  {user.city || "France"}
-                </span>
-              </h1>
-              <p style={{ color: "rgba(250,247,242,0.55)", fontSize: "1rem", marginBottom: "2rem", maxWidth: "480px" }}>
-                Choisis une activité qui te correspond et rejoins un groupe près de chez toi.
-              </p>
+        {/* City filter */}
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wider text-[var(--soft-text)]">Ville :</span>
+          <select
+            value={cityFilter}
+            onChange={(e) => setCityFilter(e.target.value)}
+            className="pill !pr-3 bg-white/90 cursor-pointer"
+          >
+            {CITIES.map((c) => <option key={c}>{c}</option>)}
+          </select>
+        </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "9999px", padding: "0.6rem 1.25rem", maxWidth: "400px" }}>
-                <span style={{ color: "rgba(250,247,242,0.4)" }}>🔍</span>
-                <input
-                  type="text"
-                  placeholder="Cherche une catégorie..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  style={{ flex: 1, border: "none", background: "transparent", color: "#FAF7F2", fontSize: "0.9rem", outline: "none", fontFamily: "inherit" }}
-                />
-                {search && (
-                  <button onClick={() => setSearch("")} style={{ color: "rgba(250,247,242,0.4)", background: "none", border: "none", cursor: "pointer", fontSize: "0.9rem" }}>✕</button>
-                )}
-              </div>
-            </div>
+        {/* Categories */}
+        <div className="-mx-4 mt-6 overflow-x-auto px-4 pb-2">
+          <div className="flex min-w-max gap-2">
+            <button
+              onClick={() => setActiveCat(null)}
+              className={`pill whitespace-nowrap ${activeCat === null ? "pill-active" : ""}`}
+              style={activeCat === null ? { background: "var(--gradient-primary)" } : undefined}
+            >
+              Toutes les catégories
+            </button>
+            {CATEGORIES.map((c) => {
+              const on = activeCat === c.id;
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => setActiveCat(on ? null : c.id)}
+                  className="pill whitespace-nowrap"
+                  style={on
+                    ? { background: c.color, color: "white", borderColor: "transparent" }
+                    : { borderColor: c.color, color: c.color }
+                  }
+                >
+                  <span className="h-2 w-2 rounded-full" style={{ background: on ? "white" : c.color }} />
+                  {c.label}
+                </button>
+              );
+            })}
           </div>
+        </div>
 
-          <div className="max-w-6xl mx-auto px-8 pb-16 relative z-10">
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
-              <h2 className="font-head font-black tracking-tight" style={{ fontSize: "1.5rem", color: "#FAF7F2" }}>
-                Activités disponibles
-              </h2>
-              <span style={{ color: "rgba(250,247,242,0.35)", fontSize: "0.8rem" }}>
-                {filtered.length} catégorie{filtered.length > 1 ? "s" : ""}
-              </span>
+        {/* Grid */}
+        {loading ? (
+          <div className="mt-12 text-center text-sm text-[var(--muted-text)]">Chargement…</div>
+        ) : (
+          <>
+            <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              {filtered.map((a) => <ActivityCard key={a.id} activity={a} />)}
             </div>
-
-            {filtered.length > 0 ? (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "1.25rem" }}>
-                {filtered.map((activity) => {
-                  const img = activity.image_url || CATEGORY_IMAGES[activity.category] || "/aquarelle.jpg";
-                  const groupCount = activity._count?.groups ?? 0;
-                  return (
-                    <div key={activity.id} style={{ borderRadius: "1.25rem", overflow: "hidden", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", transition: "transform 0.2s, box-shadow 0.2s" }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLDivElement).style.boxShadow = "0 12px 40px rgba(0,0,0,0.4)"; }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ""; (e.currentTarget as HTMLDivElement).style.boxShadow = ""; }}>
-                      
-                      {/* Image */}
-                      <div style={{ position: "relative", height: "180px", overflow: "hidden" }}>
-                        <Image src={img} alt={activity.category} fill style={{ objectFit: "cover" }} />
-                        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(20,10,30,0.7) 0%, transparent 50%)" }} />
-                        <span style={{ position: "absolute", top: "0.75rem", left: "0.75rem", background: "rgba(45,21,53,0.75)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "9999px", padding: "0.25rem 0.75rem", fontSize: "0.75rem", fontWeight: 600, color: "#FAF7F2" }}>
-                          {CATEGORY_EMOJIS[activity.category] || "✨"} {activity.category}
-                        </span>
-                      </div>
-
-                      {/* Content */}
-                      <div style={{ padding: "1.25rem" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "rgba(250,247,242,0.5)", fontSize: "0.8rem", marginBottom: "1rem" }}>
-                          <span>👥</span>
-                          <span>{groupCount} groupe{groupCount !== 1 ? "s" : ""} disponible{groupCount !== 1 ? "s" : ""}</span>
-                        </div>
-                        <Link href={`/activites/${activity.id}`} style={{ display: "block", width: "100%", padding: "0.65rem", background: "linear-gradient(135deg, #C4603A, #E8924A)", color: "#fff", borderRadius: "0.75rem", fontWeight: 600, fontSize: "0.875rem", textDecoration: "none", textAlign: "center" }}>
-                          Voir les groupes →
-                        </Link>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div style={{ textAlign: "center", padding: "4rem 0", color: "rgba(250,247,242,0.4)" }}>
-                <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🔍</div>
-                <p style={{ fontWeight: 600, color: "#FAF7F2", marginBottom: "0.5rem" }}>Aucune catégorie trouvée</p>
-                <p style={{ fontSize: "0.875rem" }}>Essaie un autre mot-clé.</p>
+            {filtered.length === 0 && (
+              <div className="glass-card mt-10 p-10 text-center">
+                <h3 className="font-display text-xl font-semibold">Aucune activité trouvée</h3>
+                <p className="mt-2 text-sm text-[var(--muted-text)]">Essaie d&apos;élargir la recherche, ou crée-en une nouvelle.</p>
               </div>
             )}
-          </div>
-        </div>
+          </>
+        )}
       </div>
+    </PageShell>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <ProtectedRoute>
+      <HomeContent />
     </ProtectedRoute>
   );
 }

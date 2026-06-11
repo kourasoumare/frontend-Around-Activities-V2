@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Logo } from "@/components/Navbar";
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -18,9 +19,13 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (!isAuthorized) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "#2D1535" }}>
-        <div style={{ color: "rgba(250,247,242,0.4)", fontSize: "0.875rem" }}>
-          Vérification en cours...
+      <div className="page-shell radial-home" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div className="doodle-bg" />
+        <div className="relative z-10 flex flex-col items-center gap-3">
+          <Logo />
+          <p style={{ color: "var(--muted-text)", fontSize: "0.82rem", fontFamily: "var(--font-sans)" }}>
+            Vérification en cours…
+          </p>
         </div>
       </div>
     );

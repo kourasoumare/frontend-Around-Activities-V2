@@ -1,46 +1,50 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { AppNavbar } from "@/components/Navbar";
-import { getMyGroupsApi } from "@/lib/api";
-import { useToast } from "@/context/ToastContext";
-import { leaveGroupApi, deleteGroupApi, ApiError } from "@/lib/api";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { MyGroup } from "@/lib/data";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { PageShell } from "@/components/Navbar";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { getMyGroupsApi, leaveGroupApi, deleteGroupApi, ApiError } from "@/lib/api";
+import { useToast } from "@/context/ToastContext";
+import { MyGroup } from "@/lib/data";
+import { Calendar, MapPin } from "lucide-react";
+
+const CAT_CONFIG: Record<string, { color: string; label: string }> = {
+  "Sport & Fitness":      { color: "#4A8C5E", label: "Sport" },
+  "Art & Culture":        { color: "#8E5BA8", label: "Art" },
+  "Restaurant & Cuisine": { color: "#C4603A", label: "Cuisine" },
+  "Musique & Événements": { color: "#D4A547", label: "Musique" },
+  "Bien-être & Détente":  { color: "#6BA89B", label: "Bien-être" },
+  "Tech & Jeux vidéo":    { color: "#4B6CB7", label: "Tech" },
+  "Nature & Plein air":   { color: "#6B8E4E", label: "Nature" },
+  "Rencontres & Chill":   { color: "#C97A8E", label: "Chill" },
+};
 
 function MesGroupesContent() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState<"joined" | "created">(tabParam === "created" ? "created" : "joined");
   const [groups, setGroups] = useState<MyGroup[]>([]);
-  const { showToast } = useToast();
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const { showToast } = useToast();
 
   useEffect(() => {
     const stored = localStorage.getItem("user");
-    if (stored) {
-      const u = JSON.parse(stored);
-      setCurrentUserId(u.id);
-    }
+    if (stored) setCurrentUserId(JSON.parse(stored).id);
   }, []);
 
   useEffect(() => {
-    const fetchMyGroups = async () => {
-      try {
-        const myGroups = await getMyGroupsApi();
-        const raw = myGroups as any;
-        const arr = Array.isArray(raw) ? raw : raw?.groups ?? [];
+    getMyGroupsApi()
+      .then((raw) => {
+        const arr = Array.isArray(raw) ? raw : (raw as any)?.groups ?? [];
         setGroups(arr as MyGroup[]);
-      } catch {
-        showToast("Erreur lors du chargement des groupes.", "error");
-      }
-    };
-    fetchMyGroups();
+      })
+      .catch(() => showToast("Erreur lors du chargement des groupes.", "error"));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUserId]);
 
-  async function quitterGroupe(id: number) {
+  async function quitter(id: number) {
     try {
       await leaveGroupApi(id);
       setGroups((prev) => prev.filter((g) => g.id !== id));
@@ -55,16 +59,13 @@ function MesGroupesContent() {
     }
   }
 
-  async function supprimerGroupe(id: number) {
+  async function supprimer(id: number) {
     try {
       await deleteGroupApi(id);
       setGroups((prev) => prev.filter((g) => g.id !== id));
       showToast("Groupe supprimé.", "success");
     } catch (err) {
-      if (err instanceof ApiError && err.status === 0) {
-        setGroups((prev) => prev.filter((g) => g.id !== id));
-        showToast("Groupe supprimé.", "success");
-      } else if (err instanceof ApiError && err.status === 403) {
+      if (err instanceof ApiError && err.status === 403) {
         showToast("Vous n'êtes pas autorisé à supprimer ce groupe.", "error");
       } else {
         showToast("Erreur lors de la suppression.", "error");
@@ -74,94 +75,89 @@ function MesGroupesContent() {
 
   const joined = groups.filter((g) => g.creator_id !== currentUserId);
   const created = groups.filter((g) => g.creator_id === currentUserId);
-  const current = activeTab === "joined" ? joined : created;
+  const list = activeTab === "joined" ? joined : created;
 
   return (
-    <div className="px-8 pt-10 pb-20">
-      <div className="max-w-3xl mx-auto">
-        <h1 className="font-head text-4xl font-black tracking-tight">
-          <span style={{ color: "#FAF7F2" }}>Mes </span>
-          <span style={{ background: "linear-gradient(135deg, #C4603A, #E8924A, #F0A860)", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent", color: "transparent" }}>groupes</span>
-        </h1>
-        <p style={{ color: "rgba(250,247,242,0.4)", fontSize: "0.875rem", marginTop: "0.5rem" }}>
-          Suis et gère toutes tes sorties
-        </p>
-      </div>
+    <PageShell variant="home">
+      <div className="mx-auto max-w-5xl px-4 pt-8 md:px-8">
+        <h1 className="font-display text-4xl font-bold">Mes activités</h1>
+        <p className="mt-1 text-[var(--muted-text)]">Suis tes communautés et tes sorties à venir.</p>
 
-      <div className="max-w-3xl mx-auto mt-6 relative z-10">
-        <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: "0.75rem", padding: "3px", display: "flex", gap: "3px", marginBottom: "1.5rem" }}>
-          <button onClick={() => setActiveTab("joined")} style={{ flex: 1, textAlign: "center", padding: "0.5rem", fontSize: "0.82rem", fontWeight: activeTab === "joined" ? 600 : 500, cursor: "pointer", borderRadius: "0.5rem", border: "none", background: activeTab === "joined" ? "rgba(255,255,255,0.12)" : "transparent", color: activeTab === "joined" ? "#FAF7F2" : "rgba(250,247,242,0.4)", fontFamily: "inherit", transition: "all 0.2s" }}>
-            Groupes rejoints ({joined.length})
-          </button>
-          <button onClick={() => setActiveTab("created")} style={{ flex: 1, textAlign: "center", padding: "0.5rem", fontSize: "0.82rem", fontWeight: activeTab === "created" ? 600 : 500, cursor: "pointer", borderRadius: "0.5rem", border: "none", background: activeTab === "created" ? "rgba(255,255,255,0.12)" : "transparent", color: activeTab === "created" ? "#FAF7F2" : "rgba(250,247,242,0.4)", fontFamily: "inherit", transition: "all 0.2s" }}>
-            Groupes créés ({created.length})
-          </button>
+        <div className="mt-6 flex gap-1 rounded-full bg-white/60 p-1 backdrop-blur w-fit">
+          {(["joined", "created"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setActiveTab(t)}
+              className="rounded-full px-5 py-2 text-sm font-medium transition"
+              style={activeTab === t
+                ? { background: "var(--gradient-primary)", color: "white", boxShadow: "var(--shadow-warm)" }
+                : { color: "var(--muted-text)" }
+              }
+            >
+              {t === "joined" ? `Groupes rejoints (${joined.length})` : `Groupes créés (${created.length})`}
+            </button>
+          ))}
         </div>
 
-        {current.length > 0 ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-            {current.map((group) => (
-              <div key={group.id} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.10)", borderRadius: "1rem", padding: "1.25rem 1.5rem", display: "flex", alignItems: "center", gap: "1rem" }}>
-                <div style={{ width: 44, height: 44, borderRadius: "0.75rem", flexShrink: 0, background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem" }}>
-                  {group.activities?.category?.includes("Art") ? "🎨" : group.activities?.category?.includes("Sport") ? "⚽" : group.activities?.category?.includes("Cuisine") ? "🍳" : "🧘"}
+        <div className="mt-8 space-y-4">
+          {list.length === 0 ? (
+            <div className="glass-card p-10 text-center">
+              <p className="text-[var(--muted-text)]">
+                {activeTab === "joined" ? "Tu n'as pas encore rejoint de groupe." : "Tu n'as pas encore créé de groupe."}
+              </p>
+              <Link href="/home" className="btn-primary mt-4 inline-flex">Explorer</Link>
+            </div>
+          ) : (
+            list.map((g) => {
+              const cat = g.activities?.category ? (CAT_CONFIG[g.activities.category] ?? { color: "#C4603A", label: g.activities.category[0] }) : { color: "#C4603A", label: "G" };
+              const dateStr = new Date(g.meeting_date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+              const isCreator = g.creator_id === currentUserId;
+              return (
+                <div key={g.id} className="glass-card glass-card-hover flex flex-col items-stretch gap-4 p-5 sm:flex-row sm:items-center">
+                  <span
+                    className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-white font-display text-xl font-bold"
+                    style={{ background: cat.color }}
+                  >
+                    {cat.label[0]}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: cat.color }}>
+                      {g.activities?.title ?? "Groupe"}
+                    </p>
+                    <h3 className="truncate font-display text-lg font-bold">{g.name}</h3>
+                    <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-[var(--muted-text)]">
+                      <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" /> {dateStr}</span>
+                      <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {g.location?.split(",")[0]}</span>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 gap-2">
+                    {isCreator ? (
+                      <button onClick={() => supprimer(g.id)} className="btn-secondary !py-2 text-sm">Supprimer</button>
+                    ) : (
+                      <button onClick={() => quitter(g.id)} className="btn-secondary !py-2 text-sm">Quitter</button>
+                    )}
+                    <Link href={`/groupes/${g.id}`} className="btn-primary !py-2 text-sm">Voir</Link>
+                  </div>
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <h3 style={{ fontWeight: 600, color: "#FAF7F2", marginBottom: "0.2rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{group.name}</h3>
-                  <p style={{ fontSize: "0.75rem", color: "rgba(250,247,242,0.4)" }}>
-                    {group.activities?.title} · {group.meeting_date} · {group.location}
-                  </p>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
-                  {group.creator_id === currentUserId ? (
-                    <button onClick={() => supprimerGroupe(group.id)} style={{ padding: "0.4rem 0.9rem", background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", color: "#FCA5A5", borderRadius: "0.5rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "inherit" }}>
-                      🗑 Supprimer
-                    </button>
-                  ) : (
-                    <button onClick={() => quitterGroupe(group.id)} style={{ padding: "0.4rem 0.9rem", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(250,247,242,0.7)", borderRadius: "0.5rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "inherit" }}>
-                      Quitter
-                    </button>
-                  )}
-                  <Link href={`/groupes/${group.id}`} style={{ padding: "0.4rem 0.9rem", background: "linear-gradient(135deg, #C4603A, #E8924A)", color: "#fff", borderRadius: "0.5rem", fontSize: "0.75rem", fontWeight: 600, textDecoration: "none" }}>
-                    Voir
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "1.5rem", padding: "4rem", textAlign: "center" }}>
-            <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>{activeTab === "joined" ? "🔍" : "✨"}</div>
-            <p style={{ fontWeight: 600, color: "#FAF7F2", marginBottom: "0.5rem" }}>
-              {activeTab === "joined" ? "Tu n'as pas encore rejoint de groupe" : "Tu n'as pas encore créé de groupe"}
-            </p>
-            <p style={{ fontSize: "0.875rem", color: "rgba(250,247,242,0.4)", marginBottom: "1.5rem" }}>
-              {activeTab === "joined" ? "Explore les activités et rejoins un groupe." : "Lance ta première sortie !"}
-            </p>
-            <Link href="/home" style={{ background: "linear-gradient(135deg, #C4603A, #E8924A)", color: "#fff", padding: "0.75rem 1.5rem", borderRadius: "9999px", fontWeight: 600, textDecoration: "none", fontSize: "0.875rem" }}>
-              Explorer les activités
-            </Link>
-          </div>
-        )}
+              );
+            })
+          )}
+        </div>
       </div>
-    </div>
+    </PageShell>
   );
 }
 
 export default function MesGroupesPage() {
   return (
     <ProtectedRoute>
-      <div className="min-h-screen pb-20 md:pb-0 relative" style={{ background: "#2D1535" }}>
-        <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
-          <div className="absolute gradient-animated" style={{ width: "60%", height: "60%", top: "0%", left: "0%", background: "radial-gradient(ellipse, rgba(196,96,58,0.20) 0%, transparent 70%)" }} />
-          <div className="absolute gradient-animated" style={{ width: "50%", height: "50%", bottom: "0%", right: "0%", background: "radial-gradient(ellipse, rgba(160,60,180,0.15) 0%, transparent 70%)", animationDelay: "-4s" }} />
-        </div>
-        <div className="relative z-10">
-          <AppNavbar />
-          <Suspense fallback={<div style={{ padding: "2rem", textAlign: "center", color: "rgba(250,247,242,0.4)" }}>Chargement...</div>}>
-            <MesGroupesContent />
-          </Suspense>
-        </div>
-      </div>
+      <Suspense fallback={
+        <PageShell variant="home">
+          <div className="flex items-center justify-center py-20 text-sm text-[var(--muted-text)]">Chargement…</div>
+        </PageShell>
+      }>
+        <MesGroupesContent />
+      </Suspense>
     </ProtectedRoute>
   );
 }

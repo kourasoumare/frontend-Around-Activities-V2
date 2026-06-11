@@ -15,7 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
       </head>
-      <body className="min-h-screen bg-bg font-body antialiased">
+      <body className="min-h-screen antialiased" style={{ background: "var(--page)", fontFamily: "var(--font-body)" }}>
         <ToastProvider>
           <SocketProvider>
             {children}

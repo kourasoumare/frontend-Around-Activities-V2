@@ -175,6 +175,6 @@ export const MOCK_USER: User = {
   lastName: "Martin",
   email: "jules@exemple.fr",
   city: "Paris",
-  interests: ["🎨 Art", "⚽ Sport", "🍳 Cuisine", "🎵 Musique", "📚 Lecture"],
+  interests: ["Art", "Sport", "Cuisine", "Musique", "Lecture"],
   createdAt: "mai 2025",
 };

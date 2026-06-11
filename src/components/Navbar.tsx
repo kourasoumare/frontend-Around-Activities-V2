@@ -1,102 +1,215 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
+import { Search, Plus, MessageCircle, User as UserIcon, Compass, Home, LogOut } from "lucide-react";
 import { useSocketContext } from "@/context/SocketContext";
+import type { ReactNode } from "react";
 
-export function PublicNavbar() {
+/* ── Avatar ── */
+export function Avatar({ name, size = 40, color }: { name: string; size?: number; color?: string }) {
+  const init = name.trim().split(/\s+/).map((n) => n[0] ?? "").join("").toUpperCase().slice(0, 2);
   return (
-    <nav style={{ position: "sticky", top: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.875rem 2rem", background: "rgba(45,21,53,0.85)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-      <Link href="/" style={{ display: "flex", alignItems: "center", gap: "0.75rem", textDecoration: "none" }}>
-        <Image src="/logo.png" alt="Around Activities" width={36} height={36} style={{ borderRadius: "50%" }} />
-        <span className="font-head" style={{ fontSize: "1.05rem", fontWeight: 900, color: "#FAF7F2" }}>Around Activities</span>
-      </Link>
-      <div style={{ display: "flex", gap: "0.75rem" }}>
-        <Link href="/connexion" style={{ padding: "0.45rem 1.1rem", borderRadius: "0.75rem", color: "rgba(250,247,242,0.7)", fontSize: "0.85rem", fontWeight: 500, textDecoration: "none", border: "1px solid rgba(255,255,255,0.12)" }}>
-          Se connecter
-        </Link>
-        <Link href="/inscription" style={{ padding: "0.45rem 1.1rem", borderRadius: "0.75rem", background: "linear-gradient(135deg, #C4603A, #E8924A)", color: "#fff", fontSize: "0.85rem", fontWeight: 600, textDecoration: "none" }}>
-          S&apos;inscrire
-        </Link>
-      </div>
-    </nav>
+    <span
+      className="inline-grid place-items-center rounded-full font-semibold text-white"
+      style={{ width: size, height: size, fontSize: size * 0.38, background: color ?? "var(--gradient-primary)", flexShrink: 0 }}
+    >
+      {init}
+    </span>
+  );
+}
+
+/* ── Logo ── */
+export function Logo() {
+  return (
+    <span
+      className="grid h-9 w-9 place-items-center rounded-2xl shadow-[0_6px_16px_-4px_rgba(196,96,58,0.5)]"
+      style={{ background: "var(--gradient-primary)" }}
+    >
+      <svg viewBox="0 0 24 24" className="h-5 w-5 text-white" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="8" />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+    </span>
+  );
+}
+
+/* ── SearchBar ── */
+export function SearchBar({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+  return (
+    <div className="relative flex-1">
+      <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--soft-text)]" />
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder ?? "Rechercher une activité, une ville…"}
+        className="field !pl-12"
+      />
+    </div>
+  );
+}
+
+/* ── CreateButton ── */
+export function CreateButton({ href, label }: { href: string; label: string }) {
+  return (
+    <Link href={href} className="btn-primary">
+      <Plus className="h-4 w-4" /> {label}
+    </Link>
+  );
+}
+
+/* ── PageShell ── */
+type Variant = "home" | "activity" | "group" | "chat" | "profile";
+
+const radialClass: Record<Variant, string> = {
+  home: "radial-home",
+  activity: "radial-activity",
+  group: "radial-group",
+  chat: "radial-chat",
+  profile: "radial-profile",
+};
+
+export function PageShell({
+  variant = "home",
+  children,
+  noNav = false,
+}: {
+  variant?: Variant;
+  children: ReactNode;
+  noNav?: boolean;
+}) {
+  return (
+    <div className={`page-shell ${radialClass[variant]}`}>
+      <div className="doodle-bg" aria-hidden="true" />
+      {!noNav && <AppNavbar />}
+      <main className="relative z-10 pb-24 md:pb-8">{children}</main>
+      {!noNav && <MobileNav />}
+    </div>
+  );
+}
+
+/* ── Desktop Navbar ── */
+function NavLink({ href, children }: { href: string; children: ReactNode }) {
+  const pathname = usePathname();
+  const active = pathname === href || (href !== "/" && pathname.startsWith(href));
+  return (
+    <Link
+      href={href}
+      className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+        active
+          ? "bg-[rgba(196,96,58,0.1)] text-[var(--primary)]"
+          : "text-[var(--muted-text)] hover:text-[var(--foreground)]"
+      }`}
+    >
+      {children}
+    </Link>
   );
 }
 
 export function AppNavbar() {
-  const pathname = usePathname();
   const router = useRouter();
   const { pendingRequests } = useSocketContext();
-  const hasNotification = pendingRequests.length > 0;
+  const notifCount = pendingRequests?.length ?? 0;
 
-  const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "{}") : {};
-  const userId = user.id ?? 1;
+  const storedUser = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+  const user = storedUser ? JSON.parse(storedUser) : null;
+  const firstName = user?.first_name ?? user?.firstName ?? "";
+  const lastName = user?.last_name ?? user?.lastName ?? "";
+  const fullName = `${firstName} ${lastName}`.trim();
+  const initials = fullName
+    ? fullName.split(/\s+/).map((n: string) => n[0] ?? "").join("").toUpperCase().slice(0, 2)
+    : "?";
 
   function handleLogout() {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    router.push("/");
+    router.push("/connexion");
   }
 
-  const navItems = [
-    { href: "/home", label: "Explorer" },
-    { href: "/mes-groupes", label: "Mes groupes" },
-    { href: "/conversations", label: "Conversations", badge: hasNotification },
-    { href: `/profil/${userId}`, label: "Profil" },
-  ];
+  return (
+    <header className="sticky top-0 z-30 glass-panel">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-8">
+        <Link href={user ? "/home" : "/"} className="flex items-center gap-2">
+          <Logo />
+          <span className="font-display text-xl font-bold tracking-tight">
+            Around <span className="text-grad">Activities</span>
+          </span>
+        </Link>
+
+        {user ? (
+          <>
+            <nav className="hidden items-center gap-1 md:flex">
+              <NavLink href="/home">Explorer</NavLink>
+              <NavLink href="/mes-groupes">Mes activités</NavLink>
+              <NavLink href="/conversations">
+                <span className="relative">
+                  Conversations
+                  {notifCount > 0 && (
+                    <span className="absolute -right-1.5 -top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full text-[9px] font-bold text-white" style={{ background: "var(--primary)" }}>
+                      {notifCount}
+                    </span>
+                  )}
+                </span>
+              </NavLink>
+              <NavLink href={`/profil/${user?.id ?? ""}`}>Profil</NavLink>
+            </nav>
+            <div className="flex items-center gap-2">
+              <Link
+                href={`/profil/${user?.id ?? ""}`}
+                className="hidden h-9 w-9 items-center justify-center rounded-full text-sm font-semibold text-[var(--primary-foreground)] md:flex"
+                style={{ background: "var(--gradient-primary)" }}
+              >
+                {initials}
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="hidden btn-secondary md:inline-flex !py-2 !px-3 text-sm"
+                title="Se déconnecter"
+              >
+                <LogOut className="h-4 w-4" /> <span>Sortir</span>
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Link href="/connexion" className="btn-secondary !py-2 text-sm">Se connecter</Link>
+            <Link href="/inscription" className="btn-primary !py-2 text-sm">S&apos;inscrire</Link>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}
+
+/* ── Mobile Bottom Nav ── */
+function MobileNav() {
+  const pathname = usePathname();
+
+  const storedUser = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+  const user = storedUser ? JSON.parse(storedUser) : null;
+  if (!user) return null;
+
+  function item(href: string, Icon: typeof Home, label: string) {
+    const active = pathname === href || (href !== "/" && pathname.startsWith(href));
+    return (
+      <Link
+        href={href}
+        className={`flex flex-1 flex-col items-center gap-1 py-2 ${active ? "text-[var(--primary)]" : "text-[var(--muted-text)]"}`}
+      >
+        <Icon className="h-5 w-5" />
+        <span className="text-[10px] font-medium">{label}</span>
+      </Link>
+    );
+  }
 
   return (
-    <>
-      {/* Desktop */}
-      <nav className="hidden md:flex items-center justify-between px-8 py-3 bg-white border-b border-bg-3 sticky top-0 z-50">
-        <Link href="/home" style={{ display: "flex", alignItems: "center", gap: "0.75rem", textDecoration: "none" }}>
-          <Image src="/logo.png" alt="Around Activities" width={36} height={36} style={{ borderRadius: "50%" }} />
-          <span className="font-head" style={{ fontSize: "1.05rem", fontWeight: 900, color: "#1a1a2e" }}>Around Activities</span>
-        </Link>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`text-sm font-medium px-4 py-2 rounded-xl transition-all relative ${pathname?.startsWith(item.href) ? "text-tc bg-tc-light font-semibold" : "text-ink-2 hover:text-ink hover:bg-bg-2"}`}
-            >
-              {item.label}
-              {item.badge && (
-                <span style={{ position: "absolute", top: 6, right: 8, width: 7, height: 7, borderRadius: "50%", background: "#EF4444", display: "inline-block" }} />
-              )}
-            </Link>
-          ))}
-        </div>
-        <button onClick={handleLogout} style={{ fontSize: "0.8rem", color: "#999", background: "none", border: "none", cursor: "pointer", padding: "0.4rem 0.8rem", borderRadius: "0.5rem" }}>
-          Se déconnecter
-        </button>
-      </nav>
-
-      {/* Mobile bottom */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-bg-3 px-2 py-2 z-50 flex justify-around">
-        {[
-          { href: "/home", label: "Explorer", icon: "🧭" },
-          { href: "/groupes/creer", label: "Créer", icon: "➕" },
-          { href: "/mes-groupes", label: "Groupes", icon: "👥" },
-          { href: "/conversations", label: "Messages", icon: "💬", badge: hasNotification },
-          { href: `/profil/${userId}`, label: "Profil", icon: "👤" },
-        ].map((item) => (
-          <Link
-            key={item.label}
-            href={item.href}
-            className={`flex flex-col items-center gap-0.5 text-xs font-medium transition-colors relative ${pathname?.startsWith(item.href) ? "text-tc" : "text-ink-3"}`}
-          >
-            <span className="text-xl relative">
-              {item.icon}
-              {item.badge && (
-                <span style={{ position: "absolute", top: 0, right: -2, width: 7, height: 7, borderRadius: "50%", background: "#EF4444", display: "inline-block" }} />
-              )}
-            </span>
-            <span>{item.label}</span>
-          </Link>
-        ))}
-      </nav>
-    </>
+    <nav className="fixed bottom-0 left-0 right-0 z-30 glass-panel border-t md:hidden">
+      <div className="mx-auto flex max-w-md">
+        {item("/home", Home, "Accueil")}
+        {item("/mes-groupes", Compass, "Mes activités")}
+        {item("/conversations", MessageCircle, "Chats")}
+        {item(`/profil/${user?.id ?? ""}`, UserIcon, "Profil")}
+      </div>
+    </nav>
   );
 }

@@ -1,172 +1,289 @@
 "use client";
 
 import Link from "next/link";
-import { AppNavbar } from "@/components/Navbar";
-import { useState, useEffect } from "react";
-import { Activity } from "@/lib/data";
+import { useState, useEffect, useRef } from "react";
+import { useParams } from "next/navigation";
+import { PageShell, Avatar } from "@/components/Navbar";
+import { GroupCard } from "@/components/GroupCard";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { getActivityByIdApi, joinGroupApi, ApiError } from "@/lib/api";
-import { useParams, notFound } from "next/navigation";
+import { Activity, BackendGroup, Message } from "@/lib/data";
 import { useToast } from "@/context/ToastContext";
+import { useSocketContext } from "@/context/SocketContext";
+import { MapPin, Calendar, Users, Sparkles, Send } from "lucide-react";
 
-/*const CATEGORY_EMOJIS: Record<string, string> = {
-  "Sport & Fitness": "⚽",
-  "Art & Culture": "🎨",
-  "Restaurant & Cuisine": "🍳",
-  "Musique & Événements": "🎵",
-  "Bien-être & Détente": "🧘",
-  "Tech & Jeux vidéo": "💻",
-  "Nature & Plein air": "🌿",
-  "Rencontres & Chill": "📸",
-};*/
+const CAT_CONFIG: Record<string, { color: string; label: string }> = {
+  "Sport & Fitness":      { color: "#4A8C5E", label: "Sport" },
+  "Art & Culture":        { color: "#8E5BA8", label: "Art" },
+  "Restaurant & Cuisine": { color: "#C4603A", label: "Cuisine" },
+  "Musique & Événements": { color: "#D4A547", label: "Musique" },
+  "Bien-être & Détente":  { color: "#6BA89B", label: "Bien-être" },
+  "Tech & Jeux vidéo":    { color: "#4B6CB7", label: "Tech" },
+  "Nature & Plein air":   { color: "#6B8E4E", label: "Nature" },
+  "Rencontres & Chill":   { color: "#C97A8E", label: "Chill" },
+};
 
-export default function ActivityDetailPage() {
+type Tab = "about" | "groups" | "chat";
+const TABS = [
+  { id: "about" as Tab, label: "À propos" },
+  { id: "groups" as Tab, label: "Groupes" },
+  { id: "chat" as Tab, label: "Chat" },
+];
+
+function ActivityDetailContent() {
   const params = useParams();
   const id = params.id as string;
+  const { showToast } = useToast();
+  const { socket } = useSocketContext();
+  const chatRef = useRef<HTMLDivElement>(null);
+
   const [activity, setActivity] = useState<Activity | null>(null);
   const [loading, setLoading] = useState(true);
-  const [joiningId, setJoiningId] = useState<number | null>(null);
-  const [joinedIds, setJoinedIds] = useState<number[]>([]);
-  const { showToast } = useToast();
+  const [tab, setTab] = useState<Tab>("about");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [draft, setDraft] = useState("");
+
+  const currentUser = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "{}") : {};
 
   useEffect(() => {
-    const fetchActivity = async () => {
-      const data = await getActivityByIdApi(Number(id));
-      setActivity(data as Activity);
-      setLoading(false);
-    };
-    fetchActivity();
+    getActivityByIdApi(Number(id))
+      .then((data) => setActivity(data as Activity))
+      .catch(() => setActivity(null))
+      .finally(() => setLoading(false));
   }, [id]);
 
-  async function handleJoin(groupId: number) {
-    setJoiningId(groupId);
+  useEffect(() => {
+    if (tab === "chat" && chatRef.current) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    }
+  }, [tab, messages]);
+
+  useEffect(() => {
+    if (!socket) return;
+    socket.on("new_activity_message", (msg: Message) => {
+      setMessages((prev) => prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]);
+    });
+    return () => { socket.off("new_activity_message"); };
+  }, [socket]);
+
+  function sendMessage() {
+    if (!draft.trim() || !socket) return;
+    socket.emit("send_activity_message", { activity_id: Number(id), content: draft.trim() });
+    setDraft("");
+  }
+
+  async function handleJoinGroup(groupId: number) {
     try {
       await joinGroupApi(groupId);
-      setJoinedIds((prev) => [...prev, groupId]);
       showToast("Tu as rejoint le groupe !", "success");
     } catch (err) {
       if (err instanceof ApiError && err.status === 400) {
-        showToast("Tu es déjà membre de ce groupe.", "error");
+        showToast("Tu es déjà membre.", "error");
       } else {
-        showToast("Impossible de rejoindre ce groupe.", "error");
+        showToast("Impossible de rejoindre.", "error");
       }
-    } finally {
-      setJoiningId(null);
     }
   }
 
   if (loading) return (
-    <div style={{ minHeight: "100vh", background: "#2D1535", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ color: "rgba(250,247,242,0.4)", fontSize: "0.9rem" }}>Chargement...</div>
-    </div>
+    <PageShell variant="activity">
+      <div className="flex items-center justify-center py-20 text-sm text-[var(--muted-text)]">Chargement…</div>
+    </PageShell>
   );
-  if (!activity) return notFound();
 
-  const groups = activity.groups ?? [];
-  const groupCount = groups.length;
+  if (!activity) return (
+    <PageShell variant="activity">
+      <div className="mx-auto max-w-2xl px-4 py-20 text-center">
+        <div className="glass-card p-10">
+          <h3 className="font-display text-xl font-bold">Activité introuvable</h3>
+          <Link href="/home" className="btn-primary mt-4 inline-flex">← Explorer</Link>
+        </div>
+      </div>
+    </PageShell>
+  );
+
+  const cat = CAT_CONFIG[activity.category] ?? { color: "#C4603A", label: activity.category };
+  const groups = (activity.groups ?? []) as BackendGroup[];
+  const totalMembers = groups.reduce((a, g) => a + (g.memberships?.length ?? 0), 0);
+  const isCommunityMember = groups.some(
+    (g) => g.creator_id === currentUser.id || g.memberships?.some((m) => m.user_id === currentUser.id),
+  );
 
   return (
-    <div className="min-h-screen pb-20 md:pb-0 relative" style={{ background: "#2D1535" }}>
-      <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
-        <div className="absolute gradient-animated" style={{ width: "60%", height: "60%", top: "0%", left: "0%", background: "radial-gradient(ellipse, rgba(196,96,58,0.18) 0%, transparent 70%)" }} />
-        <div className="absolute gradient-animated" style={{ width: "50%", height: "50%", bottom: "0%", right: "0%", background: "radial-gradient(ellipse, rgba(160,60,180,0.12) 0%, transparent 70%)", animationDelay: "-4s" }} />
-      </div>
-
-      <div className="relative z-10">
-        <AppNavbar />
-
-        {/* Header */}
-        <div style={{ padding: "2.5rem 2rem 3rem", maxWidth: "900px", margin: "0 auto" }}>
-          <Link href="/home" style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", color: "rgba(250,247,242,0.4)", fontSize: "0.8rem", textDecoration: "none", marginBottom: "1.5rem" }}>
-            ← Retour aux activités
-          </Link>
-
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "0.75rem" }}>
-
-            <div>
-              <h1 className="font-head font-black tracking-tight" style={{ fontSize: "clamp(2rem, 4vw, 3rem)", color: "#FAF7F2", lineHeight: 1.1 }}>
-                {activity.category}
-              </h1>
-              <div style={{ display: "flex", gap: "1rem", marginTop: "0.5rem" }}>
-                <span style={{ color: "rgba(250,247,242,0.5)", fontSize: "0.875rem" }}>📍 {activity.city}</span>
-                <span style={{ color: "rgba(250,247,242,0.5)", fontSize: "0.875rem" }}>👥 {groupCount} groupe{groupCount !== 1 ? "s" : ""}</span>
-              </div>
-            </div>
+    <PageShell variant="activity">
+      {/* Cover */}
+      <div
+        className="relative overflow-hidden"
+        style={{ background: `linear-gradient(135deg, ${cat.color}, ${cat.color}cc 70%, var(--primary-2))` }}
+      >
+        <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "url('/doodle-bg.png')", backgroundSize: "320px", mixBlendMode: "overlay" }} />
+        <div className="relative mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-16">
+          <Link href="/home" className="text-sm text-white/85 hover:underline">← Explorer</Link>
+          <span className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
+            {cat.label}
+          </span>
+          <h1 className="mt-3 font-display text-4xl font-bold text-white sm:text-5xl">{activity.title}</h1>
+          <div className="mt-4 flex flex-wrap items-center gap-5 text-sm text-white/90">
+            <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4" /> {activity.city}</span>
+            <span className="inline-flex items-center gap-1.5"><Calendar className="h-4 w-4" /> {groups.length} sortie{groups.length !== 1 ? "s" : ""}</span>
+            <span className="inline-flex items-center gap-1.5"><Users className="h-4 w-4" /> {totalMembers} membres</span>
+          </div>
+          <div className="mt-6">
+            <button onClick={() => setTab("groups")} className="btn-primary">
+              Voir les groupes
+            </button>
           </div>
         </div>
+      </div>
 
-        {/* Groups list */}
-        <div style={{ maxWidth: "900px", margin: "0 auto", padding: "0 2rem 4rem" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
-            <h2 className="font-head font-black" style={{ fontSize: "1.4rem", color: "#FAF7F2" }}>
-              Groupes disponibles
-            </h2>
-            <Link href={`/groupes/creer?activite=${activity.id}`} style={{ padding: "0.5rem 1.25rem", background: "linear-gradient(135deg, #C4603A, #E8924A)", color: "#fff", borderRadius: "0.75rem", fontSize: "0.85rem", fontWeight: 600, textDecoration: "none" }}>
-              + Créer un groupe
-            </Link>
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-8 md:grid-cols-[1fr_320px] md:px-8">
+        <div>
+          {/* Tabs */}
+          <div className="mb-6 flex gap-1 rounded-full bg-white/60 p-1 backdrop-blur w-fit">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className="rounded-full px-5 py-2 text-sm font-medium transition"
+                style={tab === t.id
+                  ? { background: "var(--gradient-primary)", color: "white", boxShadow: "var(--shadow-warm)" }
+                  : { color: "var(--muted-text)" }
+                }
+              >
+                {t.id === "groups" ? `Groupes (${groups.length})` : t.label}
+              </button>
+            ))}
           </div>
 
-          {groups.length > 0 ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {groups.map((group) => {
-                const membersCount = group.memberships?.length ?? 0;
-                const isFull = membersCount >= group.max_members;
-                const hasJoined = joinedIds.includes(group.id);
-                const date = new Date(group.meeting_date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
-                const organizer = group.users ? `${group.users.first_name} ${group.users.last_name}` : "Inconnu";
-
-                return (
-                  <div key={group.id} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "1.25rem", padding: "1.5rem", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1.5rem" }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
-                        <h3 style={{ fontWeight: 700, color: "#FAF7F2", fontSize: "1rem" }}>{group.name}</h3>
-                        <span style={{ background: isFull ? "rgba(239,68,68,0.15)" : "rgba(34,197,94,0.12)", border: `1px solid ${isFull ? "rgba(239,68,68,0.3)" : "rgba(34,197,94,0.3)"}`, color: isFull ? "#fca5a5" : "#86efac", borderRadius: "9999px", padding: "0.15rem 0.6rem", fontSize: "0.7rem", fontWeight: 600, flexShrink: 0 }}>
-                          {membersCount}/{group.max_members} membres
-                        </span>
-                      </div>
-                      <p style={{ color: "rgba(250,247,242,0.5)", fontSize: "0.8rem", marginBottom: "0.75rem", lineHeight: 1.5 }}>{group.description}</p>
-                      <div style={{ display: "flex", gap: "1.25rem", flexWrap: "wrap" }}>
-                        <span style={{ color: "rgba(250,247,242,0.45)", fontSize: "0.78rem" }}>📅 {date}</span>
-                        <span style={{ color: "rgba(250,247,242,0.45)", fontSize: "0.78rem" }}>📍 {group.location}</span>
-                        <span style={{ color: "rgba(250,247,242,0.45)", fontSize: "0.78rem" }}>👤 {organizer}</span>
-                      </div>
-                    </div>
-
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", flexShrink: 0 }}>
-                      <Link href={`/groupes/${group.id}`} style={{ padding: "0.5rem 1.1rem", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "#FAF7F2", borderRadius: "0.75rem", fontSize: "0.8rem", fontWeight: 600, textDecoration: "none", textAlign: "center", whiteSpace: "nowrap" }}>
-                        Voir les détails
+          {tab === "about" && (
+            <div className="glass-card p-7">
+              <h2 className="font-display text-2xl font-bold">À propos</h2>
+              <p className="mt-3 text-[var(--muted-text)]">{activity.description}</p>
+              {groups.length > 0 && (
+                <>
+                  <h3 className="mt-8 font-display text-lg font-bold">Sorties récentes</h3>
+                  <div className="mt-3 flex flex-wrap gap-3">
+                    {groups.slice(0, 4).map((g) => (
+                      <Link
+                        key={g.id}
+                        href={`/groupes/${g.id}`}
+                        className="flex items-center gap-2 rounded-full bg-white/70 py-1.5 pl-1.5 pr-4 hover:bg-white"
+                      >
+                        <Avatar name={g.name} size={32} />
+                        <span className="text-sm font-medium">{g.name}</span>
                       </Link>
-                      {hasJoined ? (
-                        <span style={{ padding: "0.5rem 1.1rem", background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.3)", color: "#86efac", borderRadius: "0.75rem", fontSize: "0.8rem", fontWeight: 600, textAlign: "center" }}>
-                          ✅ Rejoint
-                        </span>
-                      ) : isFull ? (
-                        <span style={{ padding: "0.5rem 1.1rem", background: "rgba(255,255,255,0.04)", color: "rgba(250,247,242,0.3)", borderRadius: "0.75rem", fontSize: "0.8rem", fontWeight: 600, textAlign: "center" }}>
-                          Complet
-                        </span>
-                      ) : (
-                        <button onClick={() => handleJoin(group.id)} disabled={joiningId === group.id} style={{ padding: "0.5rem 1.1rem", background: "linear-gradient(135deg, #C4603A, #E8924A)", color: "#fff", border: "none", borderRadius: "0.75rem", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap", opacity: joiningId === group.id ? 0.6 : 1 }}>
-                          {joiningId === group.id ? "..." : "Rejoindre"}
-                        </button>
-                      )}
-                    </div>
+                    ))}
                   </div>
-                );
-              })}
+                </>
+              )}
             </div>
-          ) : (
-            <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "1.5rem", padding: "4rem", textAlign: "center" }}>
-              <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🌱</div>
-              <p style={{ fontWeight: 600, color: "#FAF7F2", marginBottom: "0.5rem" }}>Aucun groupe pour l&apos;instant</p>
-              <p style={{ fontSize: "0.875rem", color: "rgba(250,247,242,0.4)", marginBottom: "1.5rem" }}>
-                Sois le premier à lancer un groupe pour cette activité !
-              </p>
-              <Link href={`/groupes/creer?activite=${activity.id}`} style={{ display: "inline-block", padding: "0.75rem 1.75rem", background: "linear-gradient(135deg, #C4603A, #E8924A)", color: "#fff", borderRadius: "9999px", fontWeight: 600, fontSize: "0.875rem", textDecoration: "none" }}>
-                Créer le premier groupe
+          )}
+
+          {tab === "groups" && (
+            <div className="grid gap-5 md:grid-cols-2">
+              {groups.length === 0 && (
+                <div className="glass-card col-span-full p-8 text-center text-[var(--muted-text)]">
+                  Aucune sortie pour le moment.
+                </div>
+              )}
+              {groups.map((g) => (
+                <GroupCard key={g.id} group={g} />
+              ))}
+              <Link
+                href={`/groupes/creer?activityId=${id}`}
+                className="glass-card glass-card-hover col-span-full flex items-center justify-center gap-2 border-dashed p-6 text-[var(--primary)]"
+              >
+                <Sparkles className="h-4 w-4" /> Proposer une nouvelle sortie
               </Link>
             </div>
           )}
+
+          {tab === "chat" && (
+            isCommunityMember ? (
+              <div className="glass-card flex h-[560px] flex-col">
+                <div className="border-b border-[var(--border)] px-5 py-3 text-sm font-semibold">
+                  Chat de la communauté · {activity.title}
+                </div>
+                <div ref={chatRef} className="flex-1 space-y-3 overflow-y-auto p-5">
+                  {messages.length === 0 && (
+                    <div className="py-8 text-center text-sm text-[var(--muted-text)]">
+                      Sois le premier à écrire !
+                    </div>
+                  )}
+                  {messages.map((m, i) => {
+                    const isMe = m.sender_id === currentUser.id;
+                    return (
+                      <div key={i} className={`flex items-end gap-2 ${isMe ? "justify-end" : ""}`}>
+                        {!isMe && <Avatar name={m.sender?.first_name ?? "?"} size={28} />}
+                        <div
+                          className={`max-w-[70%] rounded-2xl px-4 py-2 text-sm ${isMe ? "text-white" : "bg-white/80"}`}
+                          style={isMe ? { background: "var(--gradient-primary)" } : undefined}
+                        >
+                          {!isMe && <p className="mb-0.5 text-xs font-semibold opacity-70">{m.sender?.first_name}</p>}
+                          {m.content}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <form
+                  className="flex items-center gap-2 border-t border-[var(--border)] p-3"
+                  onSubmit={(e) => { e.preventDefault(); sendMessage(); }}
+                >
+                  <input
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    placeholder="Écris un message…"
+                    className="field !py-2.5"
+                  />
+                  <button className="btn-primary !p-3"><Send className="h-4 w-4" /></button>
+                </form>
+              </div>
+            ) : (
+              <div className="glass-card p-10 text-center">
+                <h3 className="font-display text-xl font-bold">Rejoins un groupe pour discuter</h3>
+                <p className="mt-2 text-sm text-[var(--muted-text)]">Le chat est réservé aux membres d'une sortie.</p>
+                <button onClick={() => setTab("groups")} className="btn-primary mt-4">Voir les groupes</button>
+              </div>
+            )
+          )}
         </div>
+
+        {/* Sidebar */}
+        <aside className="space-y-4">
+          <div className="glass-card sticky top-24 p-6">
+            <h3 className="font-display text-lg font-bold">{isCommunityMember ? "Tu es membre" : "Rejoins une sortie"}</h3>
+            <p className="mt-1 text-sm text-[var(--muted-text)]">Discute, participe aux sorties, fais-toi de vrais amis.</p>
+            <button
+              onClick={() => setTab("groups")}
+              className="btn-primary mt-4 w-full"
+            >
+              Voir les groupes
+            </button>
+            <div className="mt-5 space-y-2 text-sm">
+              {[
+                { label: "Ville", value: activity.city },
+                { label: "Catégorie", value: cat.label },
+                { label: "Sorties", value: `${groups.length}` },
+                { label: "Membres", value: `${totalMembers}` },
+              ].map(({ label, value }) => (
+                <div key={label} className="flex items-center justify-between border-b border-[var(--border)] py-1.5 last:border-0">
+                  <span className="text-[var(--muted-text)]">{label}</span>
+                  <span className="font-medium">{value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </aside>
       </div>
-    </div>
+    </PageShell>
+  );
+}
+
+export default function ActivityDetailPage() {
+  return (
+    <ProtectedRoute>
+      <ActivityDetailContent />
+    </ProtectedRoute>
   );
 }

@@ -121,6 +121,15 @@ export async function getActivitiesApi(city?: string, category?: string) {
     return apiRequest<Activity[]>(`/api/activities${query}`, { method: "GET" });
 }
 
+export async function createActivityApi(data: {
+    title: string;
+    description: string;
+    category: string;
+    city: string;
+}) {
+    return apiRequest<Activity>("/api/activities", { method: "POST", body: JSON.stringify(data) });
+}
+
 export async function getActivityByIdApi(activityId: number) {
    return apiRequest<Activity>(`/api/activities/${activityId}`, { method: "GET" });
 }
