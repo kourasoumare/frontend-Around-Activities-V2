@@ -5,7 +5,7 @@ import { PageShell, SearchBar, CreateButton } from "@/components/Navbar";
 import { ActivityCard } from "@/components/ActivityCard";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { getActivitiesApi } from "@/lib/api";
-import { Activity } from "@/lib/data";
+import { Activity, CATEGORY_OPTIONS } from "@/lib/data";
 
 const CATEGORIES = [
   { id: "Sport & Fitness",       label: "Sport",     color: "#4A8C5E" },
@@ -95,7 +95,7 @@ function HomeContent() {
             >
               Toutes les catégories
             </button>
-            {CATEGORIES.map((c) => {
+            {CATEGORY_OPTIONS.map((c) => {
               const on = activeCat === c.id;
               return (
                 <button
@@ -108,7 +108,7 @@ function HomeContent() {
                   }
                 >
                   <span className="h-2 w-2 rounded-full" style={{ background: on ? "white" : c.color }} />
-                  {c.label}
+                  {c.shortLabel}
                 </button>
               );
             })}

@@ -5,20 +5,11 @@ import { useRouter } from "next/navigation";
 import { updateProfileApi, ApiError } from "@/lib/api";
 import { useToast } from "@/context/ToastContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { INTERESTS } from "@/lib/data";
 import { ArrowRight, ArrowLeft, Check } from "lucide-react";
 
 const CITIES = ["Paris", "Lyon", "Bordeaux", "Marseille", "Toulouse", "Nantes", "Lille", "Strasbourg", "Rennes", "Montpellier"];
 const LANGUAGES = ["Français", "Anglais", "Arabe", "Bambara", "Espagnol", "Portugais", "Wolof", "Mandarin", "Hindi", "Allemand", "Italien", "Turc"];
-const CATEGORIES = [
-  { id: "Sport & Fitness",       label: "Sport & Fitness",       color: "#4A8C5E" },
-  { id: "Art & Culture",         label: "Art & Culture",         color: "#8E5BA8" },
-  { id: "Restaurant & Cuisine",  label: "Restaurant & Cuisine",  color: "#C4603A" },
-  { id: "Musique & Événements",  label: "Musique & Événements",  color: "#D4A547" },
-  { id: "Bien-être & Détente",   label: "Bien-être & Détente",   color: "#6BA89B" },
-  { id: "Tech & Jeux vidéo",     label: "Tech & Jeux vidéo",     color: "#4B6CB7" },
-  { id: "Nature & Plein air",    label: "Nature & Plein air",    color: "#6B8E4E" },
-  { id: "Rencontres & Chill",    label: "Rencontres & Chill",    color: "#C97A8E" },
-];
 
 function OnboardingContent() {
   const router = useRouter();
@@ -51,7 +42,12 @@ function OnboardingContent() {
       const stored = localStorage.getItem("user");
       if (stored) {
         const current = JSON.parse(stored);
-        localStorage.setItem("user", JSON.stringify({ ...current, ...(updated as object), interests }));
+        localStorage.setItem("user", JSON.stringify({
+          ...current,
+          ...(updated as object),
+          is_new_user: false,
+          interests,
+        }));
       }
       showToast("Profil configuré !", "success");
       router.push("/home");
@@ -133,22 +129,17 @@ function OnboardingContent() {
             <>
               <h1 className="font-display text-3xl font-bold">Tes centres d&apos;intérêt</h1>
               <p className="mt-1 text-sm text-[var(--muted-text)]">Choisis ceux qui te correspondent.</p>
-              <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {CATEGORIES.map((c) => {
-                  const on = interests.includes(c.id);
+              <div className="mt-6 flex flex-wrap gap-2">
+                {INTERESTS.map((interest) => {
+                  const on = interests.includes(interest);
                   return (
                     <button
-                      key={c.id}
-                      onClick={() => setInterests(on ? interests.filter((x) => x !== c.id) : [...interests, c.id])}
-                      className="relative rounded-2xl border p-4 text-left transition"
-                      style={on
-                        ? { background: c.color, borderColor: "transparent", color: "white", boxShadow: "var(--shadow-warm)" }
-                        : { borderColor: "var(--border)", background: "rgba(253,250,246,0.7)" }
-                      }
+                      key={interest}
+                      onClick={() => setInterests(on ? interests.filter((x) => x !== interest) : [...interests, interest])}
+                      className={`pill ${on ? "pill-active" : ""}`}
+                      style={on ? { background: "var(--gradient-primary)" } : undefined}
                     >
-                      <span className="block h-2 w-8 rounded-full" style={{ background: on ? "white" : c.color }} />
-                      <span className="mt-2 block text-sm font-semibold">{c.label}</span>
-                      {on && <Check className="absolute right-3 top-3 h-4 w-4" />}
+                      {on && <Check className="h-3.5 w-3.5" />} {interest}
                     </button>
                   );
                 })}

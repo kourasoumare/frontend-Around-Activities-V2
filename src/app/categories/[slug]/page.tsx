@@ -5,20 +5,16 @@ import Link from "next/link";
 import { AppNavbar } from "@/components/Navbar";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { getActivitiesApi } from "@/lib/api";
-import { Activity } from "@/lib/data";
+import { Activity, CATEGORY_OPTIONS, getCategoryOption } from "@/lib/data";
 import { useParams, useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 
-const CATEGORIES = [
-  { slug: "sport-fitness",      name: "Sport & Fitness",      id: "Sport & Fitness",      color: "#E8502A" },
-  { slug: "art-culture",        name: "Art & Culture",        id: "Art & Culture",        color: "#7A60C4" },
-  { slug: "restaurant-cuisine", name: "Restaurant & Cuisine", id: "Restaurant & Cuisine", color: "#E8924A" },
-  { slug: "musique-evenements", name: "Musique & Événements", id: "Musique & Événements", color: "#D45D8A" },
-  { slug: "bien-etre-detente",  name: "Bien-être & Détente",  id: "Bien-être & Détente",  color: "#4A8260" },
-  { slug: "tech-jeux-video",    name: "Tech & Jeux vidéo",    id: "Tech & Jeux vidéo",    color: "#3A7CC4" },
-  { slug: "nature-plein-air",   name: "Nature & Plein air",   id: "Nature & Plein air",   color: "#5A8C3A" },
-  { slug: "rencontres-chill",   name: "Rencontres & Chill",   id: "Rencontres & Chill",   color: "#C4603A" },
-];
+const CATEGORIES = CATEGORY_OPTIONS.map((category) => ({
+  slug: category.id,
+  name: category.label,
+  id: category.id,
+  color: category.color,
+}));
 
 const CITIES = ["Toutes les villes", "Paris", "Lyon", "Bordeaux", "Marseille", "Toulouse", "Nantes", "Lille", "Strasbourg", "Rennes", "Montpellier"];
 
@@ -54,7 +50,7 @@ function CategoryContent() {
   }
 
   const filtered = activities.filter((a) => {
-    if (a.category !== category.id) return false;
+    if (getCategoryOption(a.category)?.id !== category.id) return false;
     if (search.trim() && !a.title.toLowerCase().includes(search.toLowerCase().trim())) return false;
     if (city !== "Toutes les villes" && a.city !== city) return false;
     return true;
@@ -163,7 +159,7 @@ function CategoryContent() {
                   <div style={{ height: 5, background: category.color }} />
                   <div style={{ padding: "0.9rem 1rem" }}>
                     <div style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: category.color, marginBottom: "0.35rem" }}>
-                      {activity.category}
+                      {category.name}
                     </div>
                     <h3 style={{ fontFamily: "var(--font-head)", fontSize: "0.95rem", color: "var(--text)", marginBottom: "0.35rem", lineHeight: 1.25, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                       {activity.title}

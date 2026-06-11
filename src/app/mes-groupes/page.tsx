@@ -7,19 +7,8 @@ import { PageShell } from "@/components/Navbar";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { getMyGroupsApi, leaveGroupApi, deleteGroupApi, ApiError } from "@/lib/api";
 import { useToast } from "@/context/ToastContext";
-import { MyGroup } from "@/lib/data";
+import { getCategoryOption, MyGroup } from "@/lib/data";
 import { Calendar, MapPin } from "lucide-react";
-
-const CAT_CONFIG: Record<string, { color: string; label: string }> = {
-  "Sport & Fitness":      { color: "#4A8C5E", label: "Sport" },
-  "Art & Culture":        { color: "#8E5BA8", label: "Art" },
-  "Restaurant & Cuisine": { color: "#C4603A", label: "Cuisine" },
-  "Musique & Événements": { color: "#D4A547", label: "Musique" },
-  "Bien-être & Détente":  { color: "#6BA89B", label: "Bien-être" },
-  "Tech & Jeux vidéo":    { color: "#4B6CB7", label: "Tech" },
-  "Nature & Plein air":   { color: "#6B8E4E", label: "Nature" },
-  "Rencontres & Chill":   { color: "#C97A8E", label: "Chill" },
-};
 
 function MesGroupesContent() {
   const searchParams = useSearchParams();
@@ -94,7 +83,7 @@ function MesGroupesContent() {
                 : { color: "var(--muted-text)" }
               }
             >
-              {t === "joined" ? `Groupes rejoints (${joined.length})` : `Groupes créés (${created.length})`}
+              {t === "joined" ? `Mes activités rejoints (${joined.length})` : `Mes activités créées (${created.length})`}
             </button>
           ))}
         </div>
@@ -103,13 +92,14 @@ function MesGroupesContent() {
           {list.length === 0 ? (
             <div className="glass-card p-10 text-center">
               <p className="text-[var(--muted-text)]">
-                {activeTab === "joined" ? "Tu n'as pas encore rejoint de groupe." : "Tu n'as pas encore créé de groupe."}
+                {activeTab === "joined" ? "Tu n'as pas encore rejoint d'activité." : "Tu n'as pas encore créé d'activité."}
               </p>
               <Link href="/home" className="btn-primary mt-4 inline-flex">Explorer</Link>
             </div>
           ) : (
             list.map((g) => {
-              const cat = g.activities?.category ? (CAT_CONFIG[g.activities.category] ?? { color: "#C4603A", label: g.activities.category[0] }) : { color: "#C4603A", label: "G" };
+              const category = getCategoryOption(g.activities?.category);
+              const cat = category ? { color: category.color, label: category.shortLabel } : { color: "#C4603A", label: "A" };
               const dateStr = new Date(g.meeting_date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
               const isCreator = g.creator_id === currentUserId;
               return (

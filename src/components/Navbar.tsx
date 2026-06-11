@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, Plus, MessageCircle, User as UserIcon, Compass, Home, LogOut } from "lucide-react";
+import { Search, Plus, MessageCircle, User as UserIcon, Compass, Home, LogOut, UserPlus } from "lucide-react";
 import { useSocketContext } from "@/context/SocketContext";
 import type { ReactNode } from "react";
 
@@ -141,6 +141,16 @@ export function AppNavbar() {
             <nav className="hidden items-center gap-1 md:flex">
               <NavLink href="/home">Explorer</NavLink>
               <NavLink href="/mes-groupes">Mes activités</NavLink>
+              <NavLink href="/demandes-ami">
+                <span className="relative">
+                  Demandes
+                  {notifCount > 0 && (
+                    <span className="absolute -right-2.5 -top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full text-[9px] font-bold text-white" style={{ background: "var(--primary)" }}>
+                      {notifCount}
+                    </span>
+                  )}
+                </span>
+              </NavLink>
               <NavLink href="/conversations">
                 <span className="relative">
                   Conversations
@@ -207,6 +217,7 @@ function MobileNav() {
       <div className="mx-auto flex max-w-md">
         {item("/home", Home, "Accueil")}
         {item("/mes-groupes", Compass, "Mes activités")}
+        {item("/demandes-ami", UserPlus, "Demandes")}
         {item("/conversations", MessageCircle, "Chats")}
         {item(`/profil/${user?.id ?? ""}`, UserIcon, "Profil")}
       </div>

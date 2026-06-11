@@ -6,21 +6,10 @@ import { useParams } from "next/navigation";
 import { PageShell, Avatar } from "@/components/Navbar";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { getGroupByIdApi, getGroupMessagesApi, joinGroupApi, leaveGroupApi, ApiError } from "@/lib/api";
-import { BackendGroup, Message } from "@/lib/data";
+import { BackendGroup, getCategoryOption, Message } from "@/lib/data";
 import { useToast } from "@/context/ToastContext";
 import { useSocketContext } from "@/context/SocketContext";
 import { Calendar, MapPin, Users, Send, ChevronLeft, Navigation, Map as MapIcon } from "lucide-react";
-
-const CAT_CONFIG: Record<string, { color: string; label: string }> = {
-  "Sport & Fitness":      { color: "#4A8C5E", label: "Sport" },
-  "Art & Culture":        { color: "#8E5BA8", label: "Art" },
-  "Restaurant & Cuisine": { color: "#C4603A", label: "Cuisine" },
-  "Musique & Événements": { color: "#D4A547", label: "Musique" },
-  "Bien-être & Détente":  { color: "#6BA89B", label: "Bien-être" },
-  "Tech & Jeux vidéo":    { color: "#4B6CB7", label: "Tech" },
-  "Nature & Plein air":   { color: "#6B8E4E", label: "Nature" },
-  "Rencontres & Chill":   { color: "#C97A8E", label: "Chill" },
-};
 
 function GroupDetailContent() {
   const params = useParams();
@@ -115,7 +104,8 @@ function GroupDetailContent() {
     </PageShell>
   );
 
-  const cat = group.activities ? (CAT_CONFIG[group.activities.category] ?? { color: "#C4603A", label: group.activities.category }) : null;
+  const category = getCategoryOption(group.activities?.category);
+  const cat = category ? { color: category.color, label: category.shortLabel } : null;
   const taken = group.memberships?.length ?? 0;
   const isCreator = group.creator_id === currentUser.id;
   const dateStr = new Date(group.meeting_date).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });

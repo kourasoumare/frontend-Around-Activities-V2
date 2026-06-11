@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { loginApi } from "@/lib/api";
+import { ApiError, loginApi } from "@/lib/api";
 import { useToast } from "@/context/ToastContext";
 import { Logo } from "@/components/Navbar";
 
@@ -18,18 +18,34 @@ export default function ConnexionPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
+
     try {
-      const data = await loginApi(form.email, form.password) as any;
+      const data = await loginApi(form.email.trim(), form.password);
+      if (!data?.token || !data?.user) {
+        throw new ApiError("Réponse de connexion invalide côté serveur.", 500, data);
+      }
+
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       showToast("Connexion réussie !", "success");
-      if (data.user?.is_new_user) {
+
+      const userInterests = (data.user as any)?.interests;
+      const hasInterests = Array.isArray(userInterests) && userInterests.length > 0;
+      if (data.user?.is_new_user && !hasInterests) {
         router.push("/onboarding");
       } else {
         router.push("/home");
       }
-    } catch {
-      setError("Email ou mot de passe incorrect.");
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 0) {
+        setError(err.message);
+      } else if (err instanceof ApiError && err.status >= 500) {
+        setError(`Erreur serveur (${err.status}) : ${err.message}`);
+      } else if (err instanceof ApiError) {
+        setError(err.message || "Email ou mot de passe incorrect.");
+      } else {
+        setError("Email ou mot de passe incorrect.");
+      }
     } finally {
       setLoading(false);
     }
@@ -61,6 +77,7 @@ export default function ConnexionPage() {
                 className="field"
                 type="email"
                 required
+                autoComplete="email"
                 placeholder="toi@email.com"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -69,19 +86,22 @@ export default function ConnexionPage() {
             <label className="block">
               <span className="mb-1.5 flex items-center justify-between text-sm font-medium">
                 Mot de passe
-                <span className="text-xs font-normal text-[var(--primary)]">Mot de passe oublié ?</span>
+                <Link href="/mot-de-passe-oublie" className="text-xs font-normal text-[var(--primary)] hover:underline">
+                  Mot de passe oublié ?
+                </Link>
               </span>
               <input
                 className="field"
                 type="password"
                 required
+                autoComplete="current-password"
                 placeholder="••••••••"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
               />
             </label>
             <button type="submit" className="btn-primary w-full !py-3" disabled={loading}>
-              {loading ? "Connexion…" : "Se connecter"}
+              {loading ? "Connexion..." : "Se connecter"}
             </button>
           </form>
 

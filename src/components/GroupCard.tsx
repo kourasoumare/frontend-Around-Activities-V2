@@ -1,17 +1,6 @@
 import Link from "next/link";
 import { Calendar, MapPin } from "lucide-react";
-import { BackendGroup } from "@/lib/data";
-
-const CAT_CONFIG: Record<string, { color: string; label: string }> = {
-  "Sport & Fitness":      { color: "#4A8C5E", label: "Sport" },
-  "Art & Culture":        { color: "#8E5BA8", label: "Art" },
-  "Restaurant & Cuisine": { color: "#C4603A", label: "Cuisine" },
-  "Musique & Événements": { color: "#D4A547", label: "Musique" },
-  "Bien-être & Détente":  { color: "#6BA89B", label: "Bien-être" },
-  "Tech & Jeux vidéo":    { color: "#4B6CB7", label: "Tech" },
-  "Nature & Plein air":   { color: "#6B8E4E", label: "Nature" },
-  "Rencontres & Chill":   { color: "#C97A8E", label: "Chill" },
-};
+import { BackendGroup, getCategoryOption } from "@/lib/data";
 
 interface GroupCardProps {
   group: BackendGroup;
@@ -19,7 +8,8 @@ interface GroupCardProps {
 }
 
 export function GroupCard({ group, showActivity = false }: GroupCardProps) {
-  const cat = group.activities ? (CAT_CONFIG[group.activities.category] ?? { color: "#C4603A", label: group.activities.category }) : null;
+  const category = getCategoryOption(group.activities?.category);
+  const cat = category ? { color: category.color, label: category.shortLabel } : null;
   const taken = group.memberships?.length ?? 0;
   const pct = Math.min(100, Math.round((taken / group.max_members) * 100));
   const dateStr = new Date(group.meeting_date).toLocaleDateString("fr-FR", {

@@ -1,20 +1,10 @@
 import Link from "next/link";
 import { MapPin, Calendar, Users } from "lucide-react";
-import { Activity } from "@/lib/data";
-
-const CAT_CONFIG: Record<string, { color: string; label: string }> = {
-  "Sport & Fitness":      { color: "#4A8C5E", label: "Sport" },
-  "Art & Culture":        { color: "#8E5BA8", label: "Art" },
-  "Restaurant & Cuisine": { color: "#C4603A", label: "Cuisine" },
-  "Musique & Événements": { color: "#D4A547", label: "Musique" },
-  "Bien-être & Détente":  { color: "#6BA89B", label: "Bien-être" },
-  "Tech & Jeux vidéo":    { color: "#4B6CB7", label: "Tech" },
-  "Nature & Plein air":   { color: "#6B8E4E", label: "Nature" },
-  "Rencontres & Chill":   { color: "#C97A8E", label: "Chill" },
-};
+import { Activity, getCategoryOption } from "@/lib/data";
 
 function getCat(category: string) {
-  return CAT_CONFIG[category] ?? { color: "#C4603A", label: category };
+  const option = getCategoryOption(category);
+  return option ? { color: option.color, label: option.shortLabel } : { color: "#C4603A", label: category };
 }
 
 interface ActivityCardProps {

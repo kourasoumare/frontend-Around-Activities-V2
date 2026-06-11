@@ -7,21 +7,10 @@ import { PageShell, Avatar } from "@/components/Navbar";
 import { GroupCard } from "@/components/GroupCard";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { getActivityByIdApi, joinGroupApi, ApiError } from "@/lib/api";
-import { Activity, BackendGroup, Message } from "@/lib/data";
+import { Activity, BackendGroup, getCategoryOption, Message } from "@/lib/data";
 import { useToast } from "@/context/ToastContext";
 import { useSocketContext } from "@/context/SocketContext";
 import { MapPin, Calendar, Users, Sparkles, Send } from "lucide-react";
-
-const CAT_CONFIG: Record<string, { color: string; label: string }> = {
-  "Sport & Fitness":      { color: "#4A8C5E", label: "Sport" },
-  "Art & Culture":        { color: "#8E5BA8", label: "Art" },
-  "Restaurant & Cuisine": { color: "#C4603A", label: "Cuisine" },
-  "Musique & Événements": { color: "#D4A547", label: "Musique" },
-  "Bien-être & Détente":  { color: "#6BA89B", label: "Bien-être" },
-  "Tech & Jeux vidéo":    { color: "#4B6CB7", label: "Tech" },
-  "Nature & Plein air":   { color: "#6B8E4E", label: "Nature" },
-  "Rencontres & Chill":   { color: "#C97A8E", label: "Chill" },
-};
 
 type Tab = "about" | "groups" | "chat";
 const TABS = [
@@ -102,7 +91,8 @@ function ActivityDetailContent() {
     </PageShell>
   );
 
-  const cat = CAT_CONFIG[activity.category] ?? { color: "#C4603A", label: activity.category };
+  const category = getCategoryOption(activity.category);
+  const cat = category ? { color: category.color, label: category.shortLabel } : { color: "#C4603A", label: activity.category };
   const groups = (activity.groups ?? []) as BackendGroup[];
   const totalMembers = groups.reduce((a, g) => a + (g.memberships?.length ?? 0), 0);
   const isCommunityMember = groups.some(

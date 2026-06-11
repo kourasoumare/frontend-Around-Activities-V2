@@ -15,7 +15,6 @@ import { useToast } from "@/context/ToastContext";
 
 type UserData = Record<string, any>;
 
-
 export default function ProfilPage() {
   const params = useParams();
   const router = useRouter();
@@ -46,7 +45,7 @@ export default function ProfilPage() {
           try {
             const statusRaw = await getFriendStatusApi(Number(profileId));
             const raw = statusRaw as any;
-            setFriendStatus(raw?.status ?? raw);
+            setFriendStatus(typeof raw === "string" ? { status: raw } : raw);
           } catch { /* silent */ }
         }
       } catch {
@@ -212,7 +211,18 @@ export default function ProfilPage() {
                   <h2 style={{ fontFamily: "var(--font-head)", fontSize: "1.1rem", color: "var(--text)", marginBottom: "1rem" }}>Centres d&apos;intérêt</h2>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
                     {interests.map((interest: string) => (
-                      <span key={interest} className="interest-tag">
+                      <span key={interest} style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        minHeight: 34,
+                        padding: "0.4rem 0.75rem",
+                        background: "rgba(253,250,246,0.78)",
+                        border: "1px solid var(--border)",
+                        borderRadius: "999px",
+                        color: "var(--text-2)",
+                        fontSize: "0.82rem",
+                        fontWeight: 700,
+                      }}>
                         {interest}
                       </span>
                     ))}
@@ -224,7 +234,7 @@ export default function ProfilPage() {
               {isOwnProfile && groups.length > 0 && (
                 <div className="card card-pad">
                   <div className="sec-head" style={{ marginBottom: "1rem" }}>
-                    <h2 style={{ fontFamily: "var(--font-head)", fontSize: "1.1rem", color: "var(--text)" }}>Mes groupes</h2>
+                    <h2 style={{ fontFamily: "var(--font-head)", fontSize: "1.1rem", color: "var(--text)" }}>Mes activités</h2>
                     <Link href="/mes-groupes" style={{ fontSize: "0.82rem", color: "var(--tc)", fontWeight: 600, textDecoration: "none" }}>Voir tout →</Link>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
@@ -252,7 +262,7 @@ export default function ProfilPage() {
               {/* Empty state si pas de contenu */}
               {isOwnProfile && groups.length === 0 && (
                 <div className="card card-pad" style={{ textAlign: "center", padding: "3rem" }}>
-                  <h3 style={{ color: "var(--text)", marginBottom: "0.5rem" }}>Tu n&apos;as pas encore rejoint de groupe</h3>
+                  <h3 style={{ color: "var(--text)", marginBottom: "0.5rem" }}>Tu n&apos;as pas encore rejoint d&apos;activité</h3>
                   <p style={{ color: "var(--text-3)", fontSize: "0.9rem", marginBottom: "1.25rem" }}>Explore les activités et rejoins ta première communauté !</p>
                   <Link href="/home" className="btn btn-primary">Explorer les activités</Link>
                 </div>

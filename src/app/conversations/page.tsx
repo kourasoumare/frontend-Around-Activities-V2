@@ -10,7 +10,7 @@ import { useToast } from "@/context/ToastContext";
 import { useSocketContext } from "@/context/SocketContext";
 import { Send, ChevronLeft } from "lucide-react";
 
-type Filter = "all" | "friends" | "groups";
+type Filter = "all" | "activities" | "friends" | "groups";
 type ChatTarget = { type: "friend"; id: number; name: string } | { type: "group"; id: number; name: string };
 
 function ConversationsContent() {
@@ -121,8 +121,9 @@ function ConversationsContent() {
   const groupItems = groups.map((g) => ({
     id: `group-${g.id}`, kind: "group" as const, rid: g.id, title: g.name, subtitle: g.activities?.title ?? "Groupe",
   }));
+  const activityItems = groupItems.filter((item) => item.subtitle !== "Groupe");
   const allItems = [...friendItems, ...groupItems];
-  const filtered = filter === "all" ? allItems : filter === "friends" ? friendItems : groupItems;
+  const filtered = filter === "all" ? allItems : filter === "activities" ? activityItems : filter === "friends" ? friendItems : groupItems;
 
   function selectItem(kind: "friend" | "group", rid: number, title: string) {
     setSelectedChat({ type: kind, id: rid, name: title });
@@ -139,14 +140,14 @@ function ConversationsContent() {
               <div className="border-b border-[var(--border)] p-4">
                 <h2 className="font-display text-xl font-bold">Conversations</h2>
                 <div className="mt-3 flex flex-wrap gap-1.5">
-                  {(["all", "friends", "groups"] as Filter[]).map((f) => (
+                  {(["all", "activities", "friends", "groups"] as Filter[]).map((f) => (
                     <button
                       key={f}
                       onClick={() => setFilter(f)}
                       className={`pill !py-1 !text-[11px] ${filter === f ? "pill-active" : ""}`}
                       style={filter === f ? { background: "var(--gradient-primary)" } : undefined}
                     >
-                      {f === "all" ? "Tous" : f === "friends" ? `Amis (${friends.length})` : `Groupes (${groups.length})`}
+                      {f === "all" ? "Tout" : f === "activities" ? `Activités (${activityItems.length})` : f === "friends" ? `Amis (${friends.length})` : `Groupes (${groups.length})`}
                     </button>
                   ))}
                 </div>

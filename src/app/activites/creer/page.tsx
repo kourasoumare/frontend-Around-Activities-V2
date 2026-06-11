@@ -6,7 +6,7 @@ import { AppNavbar } from "@/components/Navbar";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useToast } from "@/context/ToastContext";
 import { createActivityApi, getActivitiesApi } from "@/lib/api";
-import { Activity } from "@/lib/data";
+import { Activity, CATEGORY_OPTIONS } from "@/lib/data";
 
 const CATEGORIES = [
   { id: "Sport & Fitness",       label: "Sport & Fitness",       slug: "sport-fitness" },
@@ -31,7 +31,7 @@ function CreerActiviteForm() {
   const initialCategory = (() => {
     const slug = searchParams.get("category");
     if (!slug) return "";
-    const found = CATEGORIES.find((c) => c.slug === slug);
+    const found = CATEGORY_OPTIONS.find((c) => c.id === slug);
     return found ? found.id : "";
   })();
 
@@ -199,7 +199,7 @@ function CreerActiviteForm() {
           <div>
             <label className="form-label">CATÉGORIE *</label>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px,1fr))", gap: "0.5rem" }}>
-              {CATEGORIES.map((cat) => (
+              {CATEGORY_OPTIONS.map((cat) => (
                 <button
                   key={cat.id}
                   type="button"
