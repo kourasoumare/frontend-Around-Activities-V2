@@ -1,23 +1,12 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AppNavbar } from "@/components/Navbar";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useToast } from "@/context/ToastContext";
-import { createActivityApi, getActivitiesApi } from "@/lib/api";
+import { createActivityApi, ApiError } from "@/lib/api";
 import { Activity, CATEGORY_OPTIONS } from "@/lib/data";
-
-const CATEGORIES = [
-  { id: "Sport & Fitness",       label: "Sport & Fitness",       slug: "sport-fitness" },
-  { id: "Art & Culture",         label: "Art & Culture",         slug: "art-culture" },
-  { id: "Restaurant & Cuisine",  label: "Restaurant & Cuisine",  slug: "restaurant-cuisine" },
-  { id: "Musique & Événements",  label: "Musique & Événements",  slug: "musique-evenements" },
-  { id: "Bien-être & Détente",   label: "Bien-être & Détente",   slug: "bien-etre-detente" },
-  { id: "Tech & Jeux vidéo",     label: "Tech & Jeux vidéo",     slug: "tech-jeux-video" },
-  { id: "Nature & Plein air",    label: "Nature & Plein air",    slug: "nature-plein-air" },
-  { id: "Rencontres & Chill",    label: "Rencontres & Chill",    slug: "rencontres-chill" },
-];
 
 const CITIES = ["Paris", "Lyon", "Bordeaux", "Marseille", "Toulouse", "Nantes", "Lille", "Strasbourg", "Rennes", "Montpellier"];
 
@@ -40,50 +29,17 @@ function CreerActiviteForm() {
   const [loading, setLoading] = useState(false);
   const [similarActivities, setSimilarActivities] = useState<SimilarActivity[]>([]);
   const [showSimilar, setShowSimilar] = useState(false);
-  const [checkingDuplicate, setCheckingDuplicate] = useState(false);
-
-  useEffect(() => {
-    if (form.title.trim().length < 3) {
-      setSimilarActivities([]);
-      setShowSimilar(false);
-      return;
-    }
-    const timer = setTimeout(async () => {
-      setCheckingDuplicate(true);
-      try {
-        const activities = await getActivitiesApi();
-        const arr = Array.isArray(activities) ? activities : [];
-        const titleLower = form.title.toLowerCase().trim();
-        const similar = arr.filter((a) => {
-          const aLower = a.title.toLowerCase();
-          return aLower.includes(titleLower) || titleLower.includes(aLower) ||
-            aLower.split(" ").some((w: string) => w.length > 3 && titleLower.includes(w));
-        }).map((a) => ({
-          ...a,
-          similarity: a.title.toLowerCase() === titleLower ? "exact" as const : "similar" as const,
-        }));
-        setSimilarActivities(similar);
-        setShowSimilar(similar.length > 0);
-      } catch { /* silent */ }
-      finally { setCheckingDuplicate(false); }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [form.title]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setError("");
+    setShowSimilar(false);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.title || !form.category || !form.description) {
       setError("Merci de remplir tous les champs obligatoires (*).");
-      return;
-    }
-    const exact = similarActivities.find((a) => a.similarity === "exact");
-    if (exact) {
-      setError(`Une activité avec ce nom exact existe déjà : "${exact.title}". Choisis un autre nom.`);
       return;
     }
     setLoading(true);
@@ -97,9 +53,16 @@ function CreerActiviteForm() {
       showToast("Activité créée avec succès !", "success");
       router.push(activity?.id ? `/activites/${activity.id}` : "/home");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Erreur lors de la création.";
-      setError(message);
-      showToast(message, "error");
+      if (err instanceof ApiError && err.status === 409) {
+        setSimilarActivities((err.details as any)?.similar ?? []);
+        setShowSimilar(true);
+      } else if (err instanceof ApiError && err.status === 400) {
+        setError(err.message);
+      } else {
+        const message = err instanceof Error ? err.message : "Erreur lors de la création.";
+        setError(message);
+        showToast(message, "error");
+      }
     } finally {
       setLoading(false);
     }
@@ -132,32 +95,18 @@ function CreerActiviteForm() {
         )}
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-          {/* Titre avec détection doublon */}
+          {/* Titre */}
           <div>
             <label className="form-label">NOM DE L&apos;ACTIVITÉ *</label>
-            <div style={{ position: "relative" }}>
-              <input
-                className="form-input"
-                name="title"
-                placeholder="Ex: Foot du dimanche, Running Club Paris…"
-                value={form.title}
-                onChange={handleChange}
-                style={{ paddingRight: checkingDuplicate ? "2.5rem" : undefined }}
-              />
-              {checkingDuplicate && (
-                <span style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "var(--text-4)", fontSize: "0.8rem" }}>
-                  ⟳
-                </span>
-              )}
-            </div>
+            <input
+              className="form-input"
+              name="title"
+              placeholder="Ex: Foot du dimanche, Running Club Paris…"
+              value={form.title}
+              onChange={handleChange}
+            />
 
-            {similarActivities.some((a) => a.similarity === "exact") && (
-              <div style={{ marginTop: "0.6rem", padding: "0.75rem 1rem", background: "rgba(196,96,58,0.10)", border: "1px solid rgba(196,96,58,0.25)", borderRadius: "var(--r)", fontSize: "0.85rem", color: "var(--tc)" }}>
-                Une activité avec ce nom exact existe déjà. Choisis un autre nom.
-              </div>
-            )}
-
-            {showSimilar && !similarActivities.some((a) => a.similarity === "exact") && (
+            {showSimilar && similarActivities.length > 0 && (
               <div style={{ marginTop: "0.6rem", padding: "0.9rem 1rem", background: "var(--orange-soft)", border: "1px solid rgba(232,146,74,0.25)", borderRadius: "var(--r)" }}>
                 <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text-2)", marginBottom: "0.6rem" }}>
                   Des activités similaires existent déjà. Tu veux les rejoindre ?
@@ -244,7 +193,7 @@ function CreerActiviteForm() {
           <button
             type="submit"
             className="btn btn-primary btn-block btn-lg"
-            disabled={loading || similarActivities.some((a) => a.similarity === "exact")}
+            disabled={loading}
             style={{ marginTop: "0.5rem" }}
           >
             {loading ? "Création en cours…" : "Créer l'activité →"}
