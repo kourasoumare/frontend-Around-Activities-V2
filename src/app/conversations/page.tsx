@@ -4,14 +4,17 @@ import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { PageShell, Avatar } from "@/components/Navbar";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { getFriendsApi, getMyGroupsApi, getGroupMessagesApi, getPrivateMessagesApi } from "@/lib/api";
-import { Friend, Message, MyGroup } from "@/lib/data";
+import { getFriendsApi, getMyGroupsApi, getMyActivitiesApi, getGroupMessagesApi, getPrivateMessagesApi, getActivityMessagesApi } from "@/lib/api";
+import { Friend, Message, MyGroup, Activity } from "@/lib/data";
 import { useToast } from "@/context/ToastContext";
 import { useSocketContext } from "@/context/SocketContext";
 import { Send, ChevronLeft } from "lucide-react";
 
 type Filter = "all" | "activities" | "friends" | "groups";
-type ChatTarget = { type: "friend"; id: number; name: string } | { type: "group"; id: number; name: string };
+type ChatTarget = 
+  | { type: "friend"; id: number; name: string }
+  | { type: "group"; id: number; name: string }
+  | { type: "activity"; id: number; name: string };
 
 function ConversationsContent() {
   const searchParams = useSearchParams();
@@ -22,6 +25,7 @@ function ConversationsContent() {
   const [filter, setFilter] = useState<Filter>("all");
   const [friends, setFriends] = useState<Friend[]>([]);
   const [groups, setGroups] = useState<MyGroup[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [selectedChat, setSelectedChat] = useState<ChatTarget | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -33,11 +37,24 @@ function ConversationsContent() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [fr, gr] = await Promise.all([getFriendsApi(), getMyGroupsApi()]);
+        const [fr, gr, act] = await Promise.all([
+          getFriendsApi(),
+          getMyGroupsApi(),
+          getMyActivitiesApi(),
+        ]);
         const frArr = Array.isArray(fr) ? fr : (fr as any)?.friends ?? [];
         const grArr = Array.isArray(gr) ? gr : (gr as any)?.groups ?? [];
+        const actArr = [...((act as any)?.joined ?? []), ...((act as any)?.created ?? [])];
+        // Dédupliquer les activités
+        const seen = new Set();
+        const uniqueAct = actArr.filter((a: Activity) => {
+          if (seen.has(a.id)) return false;
+          seen.add(a.id);
+          return true;
+        });
         setFriends(frArr as Friend[]);
         setGroups(grArr as MyGroup[]);
+        setActivities(uniqueAct as Activity[]);
       } catch {
         showToast("Erreur de chargement.", "error");
       }
@@ -72,6 +89,10 @@ function ConversationsContent() {
           const msgs = await getGroupMessagesApi(selectedChat.id);
           setMessages(Array.isArray(msgs) ? msgs as Message[] : []);
           socket?.emit("join_group", selectedChat.id);
+        } else if (selectedChat.type === "activity") {
+          const msgs = await getActivityMessagesApi(selectedChat.id);
+          setMessages(Array.isArray(msgs) ? msgs as Message[] : []);
+          socket?.emit("join_activity", selectedChat.id);
         } else {
           const msgs = await getPrivateMessagesApi(selectedChat.id);
           setMessages(Array.isArray(msgs) ? msgs as Message[] : []);
@@ -95,7 +116,16 @@ function ConversationsContent() {
         setMessages((prev) => prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]);
       }
     });
-    return () => { socket.off("new_message"); socket.off("new_private_message"); };
+    socket.on("new_activity_message", (msg: Message) => {
+      if (selectedChat?.type === "activity") {
+        setMessages((prev) => prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]);
+      }
+    });
+    return () => {
+      socket.off("new_message");
+      socket.off("new_private_message");
+      socket.off("new_activity_message");
+    };
   }, [socket, selectedChat]);
 
   useEffect(() => {
@@ -108,6 +138,8 @@ function ConversationsContent() {
     setNewMessage("");
     if (selectedChat.type === "group") {
       socket.emit("send_message", { group_id: selectedChat.id, content });
+    } else if (selectedChat.type === "activity") {
+      socket.emit("send_activity_message", { activity_id: selectedChat.id, content });
     } else {
       socket.emit("send_private_message", { receiver_id: selectedChat.id, content });
     }
@@ -121,11 +153,17 @@ function ConversationsContent() {
   const groupItems = groups.map((g) => ({
     id: `group-${g.id}`, kind: "group" as const, rid: g.id, title: g.name, subtitle: g.activities?.title ?? "Groupe",
   }));
-  const activityItems = groupItems.filter((item) => item.subtitle !== "Groupe");
-  const allItems = [...friendItems, ...groupItems];
-  const filtered = filter === "all" ? allItems : filter === "activities" ? activityItems : filter === "friends" ? friendItems : groupItems;
+  const activityItems = activities.map((a) => ({
+    id: `activity-${a.id}`, kind: "activity" as const, rid: a.id, title: a.title, subtitle: "Chat communauté",
+  }));
 
-  function selectItem(kind: "friend" | "group", rid: number, title: string) {
+  const allItems = [...activityItems, ...friendItems, ...groupItems];
+  const filtered = filter === "all" ? allItems
+    : filter === "activities" ? activityItems
+    : filter === "friends" ? friendItems
+    : groupItems;
+
+  function selectItem(kind: "friend" | "group" | "activity", rid: number, title: string) {
     setSelectedChat({ type: kind, id: rid, name: title });
     setMobilePanel("chat");
   }
@@ -147,7 +185,10 @@ function ConversationsContent() {
                       className={`pill !py-1 !text-[11px] ${filter === f ? "pill-active" : ""}`}
                       style={filter === f ? { background: "var(--gradient-primary)" } : undefined}
                     >
-                      {f === "all" ? "Tout" : f === "activities" ? `Activités (${activityItems.length})` : f === "friends" ? `Amis (${friends.length})` : `Groupes (${groups.length})`}
+                      {f === "all" ? "Tout"
+                        : f === "activities" ? `Activités (${activityItems.length})`
+                        : f === "friends" ? `Amis (${friendItems.length})`
+                        : `Groupes (${groupItems.length})`}
                     </button>
                   ))}
                 </div>
@@ -167,7 +208,7 @@ function ConversationsContent() {
                       <Avatar
                         name={it.title}
                         size={42}
-                        color={it.kind === "group" ? "var(--color-cat-music)" : undefined}
+                        color={it.kind === "activity" ? "var(--primary)" : it.kind === "group" ? "var(--color-cat-music)" : undefined}
                       />
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-semibold">{it.title}</p>
@@ -195,7 +236,9 @@ function ConversationsContent() {
                     <div className="min-w-0">
                       <p className="truncate font-semibold">{selectedChat.name}</p>
                       <p className="truncate text-xs text-[var(--muted-text)]">
-                        {selectedChat.type === "friend" ? "Message privé" : "Chat de groupe"}
+                        {selectedChat.type === "friend" ? "Message privé"
+                          : selectedChat.type === "activity" ? "Chat communauté"
+                          : "Chat de groupe"}
                       </p>
                     </div>
                   </div>
