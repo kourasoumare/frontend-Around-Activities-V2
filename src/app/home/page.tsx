@@ -63,7 +63,7 @@ function HomeContent() {
             <button
               onClick={() => setActiveCat(null)}
               className={`pill whitespace-nowrap ${activeCat === null ? "pill-active" : ""}`}
-              style={activeCat === null ? { background: "var(--gradient-primary)" } : undefined}
+              style={activeCat === null ? { background: "var(--secondary-action)", color: "white" } : undefined}
             >
               Toutes les catégories
             </button>
@@ -75,8 +75,8 @@ function HomeContent() {
                   onClick={() => setActiveCat(on ? null : c.id)}
                   className="pill whitespace-nowrap"
                   style={on
-                    ? { background: c.color, color: "white", borderColor: "transparent" }
-                    : { borderColor: c.color, color: c.color }
+                       ? { background: "var(--secondary-action)", color: "white", borderColor: "transparent" }
+                       : { borderColor: c.color, color: c.color }
                   }
                 >
                   <span className="h-2 w-2 rounded-full" style={{ background: on ? "white" : c.color }} />

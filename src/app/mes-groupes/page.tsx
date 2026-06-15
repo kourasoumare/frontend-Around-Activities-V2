@@ -42,9 +42,9 @@ function MesActivitesContent() {
               onClick={() => setActiveTab(t)}
               className="rounded-full px-5 py-2 text-sm font-medium transition"
               style={activeTab === t
-                ? { background: "var(--gradient-primary)", color: "white", boxShadow: "var(--shadow-warm)" }
-                : { color: "var(--muted-text)" }
-              }
+               ? { background: "var(--secondary-action)", color: "white" }
+               : { color: "var(--muted-text)" }
+                  }
             >
               {t === "joined" ? `Rejointes (${joined.length})` : `Créées (${created.length})`}
             </button>
