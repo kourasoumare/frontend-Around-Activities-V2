@@ -8,7 +8,7 @@ import { useToast } from "@/context/ToastContext";
 import { createGroupApi, getActivitiesApi, getActivityByIdApi, ApiError } from "@/lib/api";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
-const CITIES = ["Paris", "Lyon", "Bordeaux", "Marseille", "Toulouse", "Nantes", "Lille", "Strasbourg", "Rennes", "Montpellier"];
+
 
 function CreateGroupForm() {
   const router = useRouter();
@@ -192,13 +192,7 @@ function CreateGroupForm() {
             </p>
           </div>
 
-          {/* Ville */}
-          <div>
-            <label className="form-label">VILLE</label>
-            <select className="form-input" name="city" value={form.city} onChange={handleChange} style={{ cursor: "pointer" }}>
-              {CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
+          
 
           {/* Max membres */}
           <div>

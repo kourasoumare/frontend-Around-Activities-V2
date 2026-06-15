@@ -8,7 +8,7 @@ import { useToast } from "@/context/ToastContext";
 import { createActivityApi, ApiError } from "@/lib/api";
 import { Activity, CATEGORY_OPTIONS } from "@/lib/data";
 
-const CITIES = ["Paris", "Lyon", "Bordeaux", "Marseille", "Toulouse", "Nantes", "Lille", "Strasbourg", "Rennes", "Montpellier"];
+
 
 type SimilarActivity = Activity & { similarity?: "exact" | "similar" };
 
@@ -182,13 +182,7 @@ function CreerActiviteForm() {
             />
           </div>
 
-          {/* Ville */}
-          <div>
-            <label className="form-label">VILLE</label>
-            <select className="form-input" name="city" value={form.city} onChange={handleChange} style={{ cursor: "pointer" }}>
-              {CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
+          
 
           <button
             type="submit"
