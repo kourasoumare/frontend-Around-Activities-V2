@@ -7,25 +7,11 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { getActivitiesApi } from "@/lib/api";
 import { Activity, CATEGORY_OPTIONS } from "@/lib/data";
 
-const CATEGORIES = [
-  { id: "Sport & Fitness",       label: "Sport",     color: "#4A8C5E" },
-  { id: "Art & Culture",         label: "Art",       color: "#8E5BA8" },
-  { id: "Restaurant & Cuisine",  label: "Cuisine",   color: "#C4603A" },
-  { id: "Musique & Événements",  label: "Musique",   color: "#D4A547" },
-  { id: "Bien-être & Détente",   label: "Bien-être", color: "#6BA89B" },
-  { id: "Tech & Jeux vidéo",     label: "Tech",      color: "#4B6CB7" },
-  { id: "Nature & Plein air",    label: "Nature",    color: "#6B8E4E" },
-  { id: "Rencontres & Chill",    label: "Chill",     color: "#C97A8E" },
-];
-
-const CITIES = ["Toutes", "Paris", "Lyon", "Bordeaux", "Marseille", "Toulouse", "Nantes", "Lille", "Strasbourg", "Rennes", "Montpellier"];
-
 function HomeContent() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [activeCat, setActiveCat] = useState<string | null>(null);
-  const [cityFilter, setCityFilter] = useState("Toutes");
   const [currentUser, setCurrentUser] = useState<{ first_name?: string; firstName?: string; city?: string } | null>(null);
 
   useEffect(() => {
@@ -35,13 +21,11 @@ function HomeContent() {
 
   useEffect(() => {
     setLoading(true);
-    const city = cityFilter !== "Toutes" ? cityFilter : undefined;
-    const cat = activeCat ?? undefined;
-    getActivitiesApi(city, cat)
+    getActivitiesApi("Paris", activeCat ?? undefined)
       .then((data) => setActivities(Array.isArray(data) ? data : []))
       .catch(() => setActivities([]))
       .finally(() => setLoading(false));
-  }, [cityFilter, activeCat]);
+  }, [activeCat]);
 
   const filtered = useMemo(() => {
     if (!q.trim()) return activities;
@@ -71,18 +55,6 @@ function HomeContent() {
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <SearchBar value={q} onChange={setQ} />
           <CreateButton href="/activites/creer" label="Créer une activité" />
-        </div>
-
-        {/* City filter */}
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold uppercase tracking-wider text-[var(--soft-text)]">Ville :</span>
-          <select
-            value={cityFilter}
-            onChange={(e) => setCityFilter(e.target.value)}
-            className="pill !pr-3 bg-white/90 cursor-pointer"
-          >
-            {CITIES.map((c) => <option key={c}>{c}</option>)}
-          </select>
         </div>
 
         {/* Categories */}
