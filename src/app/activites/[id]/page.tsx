@@ -29,7 +29,7 @@ function ActivityDetailContent() {
   const [isMember, setIsMember] = useState(false);
   const [memberLoading, setMemberLoading] = useState(false);
   const [members, setMembers] = useState<{ id: number; first_name: string; last_name: string; avatar_url?: string }[]>([]);
-  const [showAllGroups, setShowAllGroups] = useState(false);
+  
 
   const currentUser = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "{}") : {};
 
@@ -143,7 +143,7 @@ function ActivityDetailContent() {
   const category = getCategoryOption(activity.category);
   const cat = category ? { color: category.color, label: category.shortLabel } : { color: "#C4603A", label: activity.category };
   const groups = (activity.groups ?? []) as BackendGroup[];
-  const visibleGroups = showAllGroups ? groups : groups.slice(0, 3);
+  
 
   return (
     <PageShell variant="activity">
@@ -229,7 +229,7 @@ function ActivityDetailContent() {
                     Aucune sortie pour le moment.
                   </div>
                 ) : (
-                  visibleGroups.map((g) => {
+                  groups.map((g) => {
                     const dateStr = g.meeting_date
                       ? new Date(g.meeting_date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })
                       : null;
@@ -287,13 +287,13 @@ function ActivityDetailContent() {
               {/* Voir plus / Créer */}
               <div className="border-t border-[var(--border)] p-3 flex items-center justify-between">
                 {groups.length > 3 && (
-                  <button
-                    onClick={() => setShowAllGroups(!showAllGroups)}
-                    className="text-sm font-medium text-[var(--primary)] hover:underline"
-                  >
-                    {showAllGroups ? "Voir moins" : `Voir plus (${groups.length - 3})`}
-                  </button>
-                )}
+                     <Link
+                       href={`/activites/${id}/groupes`}
+                       className="text-sm font-medium text-[var(--primary)] hover:underline"
+                        >
+                            Voir tous les groupes ({groups.length})
+                      </Link>
+)}
                 {isMember ? (
                    <Link
                     href={`/groupes/creer?activityId=${id}`}
