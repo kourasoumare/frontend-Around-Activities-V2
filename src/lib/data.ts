@@ -134,11 +134,13 @@ export const CATEGORY_OPTIONS = [
   { id: "sport-fitness", label: "Sport & Fitness", shortLabel: "Sport", color: "#4A8C5E" },
   { id: "art-culture", label: "Art & Culture", shortLabel: "Art", color: "#8E5BA8" },
   { id: "restaurant-cuisine", label: "Restaurant & Cuisine", shortLabel: "Cuisine", color: "#C4603A" },
+  { id: "divertissement", label: "Divertissement", shortLabel: "Divertissement", color: "#E05C8A" },
   { id: "musique-evenements", label: "Musique & Événements", shortLabel: "Musique", color: "#D4A547" },
   { id: "bien-etre-detente", label: "Bien-être & Détente", shortLabel: "Bien-être", color: "#6BA89B" },
   { id: "tech-jeux-video", label: "Tech & Jeux vidéo", shortLabel: "Tech", color: "#4B6CB7" },
   { id: "nature-plein-air", label: "Nature & Plein air", shortLabel: "Nature", color: "#6B8E4E" },
   { id: "rencontres-chill", label: "Rencontres & Chill", shortLabel: "Chill", color: "#C97A8E" },
+  
 ];
 
 export function getCategoryOption(category?: string | null) {
@@ -179,3 +181,18 @@ export const MOCK_USER: User = {
   interests: ["Art", "Sport", "Cuisine", "Musique", "Lecture"],
   createdAt: "mai 2025",
 };
+
+export function getCategoryImage(category?: string | null): string {
+  const map: Record<string, string> = {
+    "sport-fitness": "/sport.png",
+    "art-culture": "/art.png",
+    "restaurant-cuisine": "/cuisine.png",
+    "musique-evenements": "/Musique.png",
+    "bien-etre-detente": "/bien etre.png",
+    "tech-jeux-video": "/Tech.png",
+    "nature-plein-air": "/nature.png",
+    "rencontres-chill": "/chill.png",
+    "divertissement": "/divertissement.png",
+  };
+  return category ? (map[category] ?? "/homee.png") : "/homee.png";
+}
