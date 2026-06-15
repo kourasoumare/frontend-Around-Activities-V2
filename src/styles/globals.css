@@ -60,6 +60,9 @@
   --primary-2: #E8924A;
   --primary-foreground: #FFF8F0;
   --destructive: #B84A3A;
+  --secondary-action: #5C7A6E;
+--secondary-action-light: #E8F0EC;
+--secondary-action-foreground: #FFFFFF;
 
   --border: rgba(90, 60, 30, 0.12);
 
@@ -210,10 +213,10 @@
   &:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 }
 @utility btn-secondary {
-  background: rgba(253, 250, 246, 0.9);
-  color: var(--foreground);
-  font-weight: 500;
-  border: 1px solid var(--border);
+  background: var(--secondary-action-light);
+  color: var(--secondary-action);
+  font-weight: 600;
+  border: 1.5px solid var(--secondary-action);
   border-radius: 999px;
   padding: 0.7rem 1.4rem;
   transition: all 0.2s ease;
@@ -224,7 +227,7 @@
   cursor: pointer;
   font-family: var(--font-sans);
   text-decoration: none;
-  &:hover { background: #fff; transform: translateY(-1px); }
+  &:hover { background: var(--secondary-action); color: white; transform: translateY(-1px); }
 }
 @utility btn-ghost {
   background: transparent;
@@ -260,12 +263,11 @@
   font-family: var(--font-sans);
 }
 @utility pill-active {
-  background: var(--gradient-primary);
-  color: var(--primary-foreground);
+  background: var(--secondary-action);
+  color: white;
   border-color: transparent;
-  box-shadow: var(--shadow-warm);
+  box-shadow: 0 4px 12px -4px rgba(92, 122, 110, 0.4);
 }
-
 /* ── Inputs ── */
 @utility field {
   width: 100%;
@@ -291,6 +293,12 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+/* -- onglet -- */
+@utility tab-active {
+  background: var(--secondary-action);
+  color: white;
+  border-color: transparent;
 }
 
 /* Next.js app compatibility classes kept for migrated legacy screens. */

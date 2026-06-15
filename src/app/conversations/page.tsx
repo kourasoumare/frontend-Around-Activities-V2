@@ -183,7 +183,7 @@ function ConversationsContent() {
                       key={f}
                       onClick={() => setFilter(f)}
                       className={`pill !py-1 !text-[11px] ${filter === f ? "pill-active" : ""}`}
-                      style={filter === f ? { background: "var(--gradient-primary)" } : undefined}
+                      style={filter === f ? { background: "var(--secondary-action)", color: "white" } : undefined}
                     >
                       {f === "all" ? "Tout"
                         : f === "activities" ? `Activités (${activityItems.length})`
