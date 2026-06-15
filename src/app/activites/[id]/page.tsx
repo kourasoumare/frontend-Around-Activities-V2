@@ -236,7 +236,9 @@ function ActivityDetailContent() {
                     const timeStr = g.meeting_date
                       ? new Date(g.meeting_date).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
                       : null;
-                    const memberCount = g.memberships?.length ?? 0;
+                    const wasAlreadyMember = g.memberships?.some((m) => m.user_id === currentUser.id) ?? false;
+                    const justJoined = joinedGroupIds.includes(g.id);
+                    const memberCount = (g.memberships?.length ?? 0) + (justJoined && !wasAlreadyMember ? 1 : 0);
 
                     return (
                       <div key={g.id} className="rounded-2xl border border-[var(--border)] bg-white/70 p-4">
