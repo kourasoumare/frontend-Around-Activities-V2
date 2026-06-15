@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Search, ChevronDown, MapPin, Sparkles, Plus, Users, MessageCircle, Compass, User } from "lucide-react";
+import { ArrowRight, Search, Sparkles, Plus, Users, MessageCircle, Compass, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Logo } from "@/components/Navbar";
 
@@ -130,7 +130,8 @@ const STEPS = [
   },
 ];
 
-function ScrollStory() {
+// Retourne une valeur entre 0 et 1 représentant la progression entre deux steps
+function useScrollProgress() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
 
@@ -142,14 +143,18 @@ function ScrollStory() {
       const vh = window.innerHeight;
       const total = rect.height - vh;
       const scrolled = Math.min(Math.max(-rect.top, 0), total);
-      const ratio = total > 0 ? scrolled / total : 0;
-      setProgress(ratio * (STEPS.length - 1));
+      setProgress(total > 0 ? (scrolled / total) * (STEPS.length - 1) : 0);
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  return { containerRef, progress };
+}
+
+function ScrollStory() {
+  const { containerRef, progress } = useScrollProgress();
   const active = Math.round(progress);
   const screens = [<ScreenExplore key="a" />, <ScreenGroup key="b" />, <ScreenChat key="c" />];
 
@@ -157,63 +162,115 @@ function ScrollStory() {
     <div ref={containerRef} className="relative mt-20" style={{ height: `${STEPS.length * 100}vh` }}>
       <div className="sticky top-0 flex h-screen items-center">
         <div className="grid w-full grid-cols-1 items-center gap-12 md:grid-cols-2 md:gap-16">
+
+          {/* ── Téléphone ── */}
           <div className="flex justify-center">
             <PhoneFrame>
-              <div
-                className="flex flex-col"
-                style={{
-                  transform: `translateY(-${active * PHONE_H}px)`,
-                  transition: "transform 700ms cubic-bezier(0.22, 1, 0.36, 1)",
-                  willChange: "transform",
-                }}
-              >
-                {screens.map((s, i) => (
-                  <div key={i} className="h-full w-full shrink-0 px-3 pt-2 pb-3" style={{ height: PHONE_H }}>
-                    {s}
-                  </div>
-                ))}
+              {/*
+                Chaque écran est en position absolute dans le conteneur du téléphone.
+                On combine opacity + scale + translateY + blur pour une transition
+                totalement fluide et naturelle — l'écran sortant glisse vers le haut
+                en s'estompant, le suivant monte depuis le bas en apparaissant.
+              */}
+              <div className="relative w-full" style={{ height: PHONE_H }}>
+                {screens.map((s, i) => {
+                  const isActive = i === active;
+                  // L'écran précédent sort vers le haut, le suivant entre par le bas
+                  const offset = i < active ? -18 : i > active ? 18 : 0;
+                  return (
+                    <div
+                      key={i}
+                      className="absolute inset-0 px-3 pt-2 pb-3"
+                      style={{
+                        opacity: isActive ? 1 : 0,
+                        transform: `translateY(${offset}px) scale(${isActive ? 1 : 0.97})`,
+                        filter: isActive ? "blur(0px)" : "blur(3px)",
+                        transition: [
+                          "opacity 600ms cubic-bezier(0.4, 0, 0.2, 1)",
+                          "transform 650ms cubic-bezier(0.22, 1, 0.36, 1)",
+                          "filter 500ms cubic-bezier(0.4, 0, 0.2, 1)",
+                        ].join(", "),
+                        // Le texte entrant apparaît avec 60ms de délai par rapport au téléphone
+                        transitionDelay: isActive ? "60ms" : "0ms",
+                        pointerEvents: isActive ? "auto" : "none",
+                        willChange: "opacity, transform, filter",
+                      }}
+                    >
+                      {s}
+                    </div>
+                  );
+                })}
               </div>
             </PhoneFrame>
           </div>
 
+          {/* ── Texte ── */}
           <div className="relative min-h-[400px]">
-            <span
-              aria-hidden
-              className="pointer-events-none absolute -top-20 -left-2 select-none font-display text-[11rem] font-bold leading-none md:text-[14rem]"
-              style={{ color: "rgba(196, 96, 58, 0.10)" }}
-            >
-              {STEPS[active].number}
-            </span>
+            {/* Numéro géant en fond — crossfade doux */}
             {STEPS.map((s, i) => (
-              <div
+              <span
                 key={s.number}
-                className="absolute inset-0 transition-all duration-500 ease-out"
+                aria-hidden
+                className="pointer-events-none absolute -top-20 -left-2 select-none font-display text-[11rem] font-bold leading-none md:text-[14rem]"
                 style={{
+                  color: "rgba(196, 96, 58, 0.10)",
                   opacity: i === active ? 1 : 0,
-                  transform: i === active ? "translateY(0)" : "translateY(24px)",
-                  pointerEvents: i === active ? "auto" : "none",
+                  transition: "opacity 700ms cubic-bezier(0.4, 0, 0.2, 1)",
+                  transitionDelay: i === active ? "100ms" : "0ms",
                 }}
               >
-                <span className="text-xs font-semibold uppercase tracking-[0.25em] text-[var(--primary)]">{s.kicker}</span>
-                <h3 className="relative mt-3 font-display text-4xl font-bold leading-[1.05] sm:text-5xl md:text-6xl">
-                  {s.titleA}<em className="italic text-[var(--primary)]">{s.titleEm}</em>
-                </h3>
-                <p className="relative mt-6 max-w-md text-lg leading-relaxed text-[var(--muted-text)]">{s.text}</p>
-              </div>
+                {s.number}
+              </span>
             ))}
+
+            {STEPS.map((s, i) => {
+              const isActive = i === active;
+              const offsetText = i < active ? -20 : i > active ? 20 : 0;
+              return (
+                <div
+                  key={s.number}
+                  className="absolute inset-0"
+                  style={{
+                    opacity: isActive ? 1 : 0,
+                    transform: `translateY(${offsetText}px)`,
+                    // Léger flou sur le texte sortant pour renforcer la sensation de profondeur
+                    filter: isActive ? "blur(0px)" : "blur(2px)",
+                    transition: [
+                      "opacity 550ms cubic-bezier(0.4, 0, 0.2, 1)",
+                      "transform 600ms cubic-bezier(0.22, 1, 0.36, 1)",
+                      "filter 450ms cubic-bezier(0.4, 0, 0.2, 1)",
+                    ].join(", "),
+                    // Le texte change légèrement après le téléphone → stagger naturel
+                    transitionDelay: isActive ? "120ms" : "0ms",
+                    pointerEvents: isActive ? "auto" : "none",
+                    willChange: "opacity, transform, filter",
+                  }}
+                >
+                  <span className="text-xs font-semibold uppercase tracking-[0.25em] text-[var(--primary)]">{s.kicker}</span>
+                  <h3 className="relative mt-3 font-display text-4xl font-bold leading-[1.05] sm:text-5xl md:text-6xl">
+                    {s.titleA}<em className="italic text-[var(--primary)]">{s.titleEm}</em>
+                  </h3>
+                  <p className="relative mt-6 max-w-md text-lg leading-relaxed text-[var(--muted-text)]">{s.text}</p>
+                </div>
+              );
+            })}
+
+            {/* Indicateurs dots */}
             <div className="absolute -bottom-4 left-0 flex gap-2">
               {STEPS.map((_, i) => (
                 <span
                   key={i}
-                  className="h-1.5 rounded-full transition-all duration-300"
+                  className="h-1.5 rounded-full"
                   style={{
                     width: i === active ? 32 : 12,
                     background: i === active ? "var(--primary)" : "rgba(196,96,58,0.25)",
+                    transition: "width 400ms cubic-bezier(0.22, 1, 0.36, 1), background 400ms ease",
                   }}
                 />
               ))}
             </div>
           </div>
+
         </div>
       </div>
     </div>
@@ -250,70 +307,113 @@ function PhoneFrame({ children }: { children: React.ReactNode }) {
 }
 
 function ScreenExplore() {
-  const cats = [
-    { emoji: "⚽", label: "Foot", color: "#4A8C5E" },
-    { emoji: "🎨", label: "Art", color: "#8E5BA8" },
-    { emoji: "🍷", label: "Brunch", color: "#C4603A" },
-    { emoji: "🎷", label: "Jazz", color: "#D4A547" },
-    { emoji: "🧘", label: "Yoga", color: "#6BA89B" },
-    { emoji: "🥾", label: "Rando", color: "#6B8E4E" },
+  const activities = [
+    { title: "Yoga du matin", category: "Bien-être", img: "/bien etre.png", members: 12 },
+    { title: "Expo Pompidou", category: "Art & Culture", img: "/art.png", members: 8 },
+    { title: "Foot à Vincennes", category: "Sport", img: "/sport.png", members: 18 },
+    { title: "Soirée techno", category: "Divertissement", img: "/divertissement.png", members: 24 },
   ];
   return (
-    <div className="space-y-2.5">
-      <div className="flex items-center gap-2 rounded-full bg-white px-3 py-2 shadow-sm">
-        <Search className="h-3.5 w-3.5 text-[var(--soft-text)]" />
-        <span className="flex-1 text-[11px] text-[var(--soft-text)]">Tu as envie de quoi ?</span>
-        <ChevronDown className="h-3 w-3 text-[var(--soft-text)]" />
+    <div className="space-y-2">
+      {/* Barre de recherche */}
+      <div className="flex items-center gap-2 rounded-full bg-white px-3 py-1.5 shadow-sm">
+        <Search className="h-3 w-3 text-[var(--soft-text)]" />
+        <span className="flex-1 text-[10px] text-[var(--soft-text)]">Rechercher une activité…</span>
       </div>
-      <div className="flex items-center gap-1.5 text-[10px] text-[var(--muted-text)]">
-        <MapPin className="h-3 w-3" /> Paris
-        <span className="ml-auto rounded-full bg-[var(--primary)]/10 px-2 py-0.5 font-semibold text-[var(--primary)]">23 actives</span>
+      {/* Filtres pills */}
+      <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
+        {["Tout", "Sport", "Art", "Cuisine", "Musique"].map((f, i) => (
+          <span
+            key={f}
+            className="shrink-0 rounded-full px-2.5 py-0.5 text-[9px] font-semibold"
+            style={i === 0
+              ? { background: "var(--primary)", color: "white" }
+              : { background: "white", color: "var(--muted-text)", border: "1px solid var(--border)" }
+            }
+          >{f}</span>
+        ))}
       </div>
-      <div className="grid grid-cols-3 gap-1.5">
-        {cats.map((c) => (
-          <div key={c.label} className="aspect-square rounded-2xl bg-white p-2 shadow-sm flex flex-col items-center justify-center gap-1">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full text-base" style={{ background: `${c.color}1f` }}>{c.emoji}</div>
-            <span className="text-[9px] font-semibold">{c.label}</span>
+      {/* Vraies ActivityCards — image pleine + overlay gradient + titre blanc */}
+      <div className="grid grid-cols-2 gap-1.5">
+        {activities.map((a) => (
+          <div
+            key={a.title}
+            className="relative overflow-hidden rounded-2xl"
+            style={{ height: 90 }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={a.img} alt={a.title} className="absolute inset-0 h-full w-full object-cover" />
+            <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.1) 60%)" }} />
+            <div className="absolute bottom-0 left-0 right-0 p-1.5">
+              <p className="text-[9px] font-bold leading-tight text-white">{a.title}</p>
+              <div className="mt-0.5 flex items-center gap-1">
+                <Users className="h-2.5 w-2.5 text-white/80" />
+                <span className="text-[8px] text-white/80">{a.members} membres</span>
+              </div>
+            </div>
           </div>
         ))}
       </div>
-      <div className="rounded-2xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary-2)] p-3 text-[10px] text-white">
-        <div className="flex -space-x-1.5">
-          {[1,2,3,4].map(i => <div key={i} className="h-5 w-5 rounded-full border border-white bg-white/30" />)}
+      {/* Bandeau social */}
+      <div className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[var(--primary)] to-[var(--primary-2)] p-2 text-white">
+        <div className="flex -space-x-1.5 shrink-0">
+          {["#C4603A","#8E5BA8","#6BA89B","#4A8C5E"].map((c, i) => (
+            <div key={i} className="h-5 w-5 rounded-full border-2 border-white/60" style={{ background: c }} />
+          ))}
         </div>
-        <p className="mt-1.5 font-semibold">+ 240 nouvelles personnes près de toi</p>
+        <p className="text-[9px] font-semibold">+240 personnes près de toi</p>
       </div>
     </div>
   );
 }
 
 function ScreenGroup() {
+  const groups = [
+    { title: "Balade photo Marais", date: "Sam 22 juin · 10h", members: 4, max: 8, img: "/art.png" },
+    { title: "Course matinale", date: "Dim 23 juin · 8h30", members: 6, max: 10, img: "/sport.png" },
+  ];
   return (
-    <div className="space-y-2.5">
-      <div className="text-center">
-        <span className="text-[10px] uppercase tracking-wider text-[var(--soft-text)]">Nouvelle sortie</span>
-      </div>
-      <div className="rounded-2xl border border-[var(--border)] bg-white p-3 shadow-sm">
-        <div className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--primary)]/10 text-lg">🎷</div>
-          <div className="flex-1">
-            <p className="text-[11px] font-bold">Soirée jazz au Sunside</p>
-            <p className="text-[9px] text-[var(--soft-text)]">Vendredi 20 juin · 21h</p>
-          </div>
+    <div className="space-y-2">
+      {/* Header activité */}
+      <div className="relative overflow-hidden rounded-2xl" style={{ height: 72 }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/art.png" alt="Art & Culture" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 100%)" }} />
+        <div className="absolute bottom-0 left-0 right-0 p-2">
+          <p className="text-[11px] font-bold text-white">Art & Culture</p>
+          <p className="text-[8px] text-white/80">Communauté · 34 membres</p>
         </div>
-        <div className="mt-2.5 rounded-xl bg-[var(--background)] p-2 text-[9px] text-[var(--muted-text)]">📍 60 rue des Lombards, Paris</div>
-        <div className="mt-2 flex items-center justify-between">
-          <div className="flex items-center gap-1">
-            <div className="flex -space-x-1.5">
-              {[1,2,3].map(i => <div key={i} className="h-5 w-5 rounded-full border border-white" style={{ background: ["#C4603A","#8E5BA8","#6BA89B"][i-1] }} />)}
+        <span className="absolute right-2 top-2 rounded-full bg-[var(--primary)] px-2 py-0.5 text-[8px] font-bold text-white">Membre ✓</span>
+      </div>
+      {/* Label section */}
+      <p className="text-[9px] font-semibold uppercase tracking-wider text-[var(--muted-text)]">Sorties à venir</p>
+      {/* Cartes groupes */}
+      {groups.map((g) => (
+        <div key={g.title} className="overflow-hidden rounded-2xl bg-white shadow-sm">
+          <div className="relative" style={{ height: 52 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={g.img} alt={g.title} className="absolute inset-0 h-full w-full object-cover" />
+            <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 60%)" }} />
+            <p className="absolute bottom-1.5 left-2 text-[10px] font-bold text-white">{g.title}</p>
+          </div>
+          <div className="flex items-center justify-between px-2 py-1.5">
+            <div>
+              <p className="text-[8px] text-[var(--soft-text)]">{g.date}</p>
+              <div className="mt-0.5 flex items-center gap-1">
+                {/* Barre progression */}
+                <div className="h-1 w-16 overflow-hidden rounded-full bg-[var(--border)]">
+                  <div className="h-full rounded-full bg-[var(--primary)]" style={{ width: `${(g.members / g.max) * 100}%` }} />
+                </div>
+                <span className="text-[8px] text-[var(--muted-text)]">{g.members}/{g.max}</span>
+              </div>
             </div>
-            <span className="text-[9px] text-[var(--muted-text)]">3 inscrits · 6 max</span>
+            <button className="rounded-full bg-[var(--primary)] px-2.5 py-1 text-[8px] font-bold text-white">Rejoindre</button>
           </div>
-          <button className="rounded-full bg-[var(--primary)] px-3 py-1 text-[9px] font-bold text-white">Rejoindre</button>
         </div>
-      </div>
-      <button className="flex w-full items-center justify-center gap-1 rounded-full border-2 border-dashed border-[var(--border)] py-2 text-[10px] font-semibold text-[var(--muted-text)]">
-        <Plus className="h-3 w-3" /> Créer ma sortie
+      ))}
+      {/* Proposer une sortie */}
+      <button className="flex w-full items-center justify-center gap-1 rounded-full border-2 border-dashed border-[var(--border)] py-1.5 text-[9px] font-semibold text-[var(--muted-text)]">
+        <Plus className="h-3 w-3" /> Proposer une sortie
       </button>
     </div>
   );
@@ -324,30 +424,49 @@ function ScreenChat() {
     { name: "Mei", text: "On se retrouve à 20h45 devant ?", color: "#8E5BA8", me: false },
     { name: "Moi", text: "Parfait, j'apporte les places 🎫", color: "#C4603A", me: true },
     { name: "Yanis", text: "Je suis dans le métro, à dans 10 !", color: "#4A8C5E", me: false },
+    { name: "Moi", text: "👍 Top, on vous attend !", color: "#C4603A", me: true },
   ];
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2 rounded-2xl bg-white p-2 shadow-sm">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--primary)]/10 text-base">🎷</div>
-        <div className="flex-1">
-          <p className="text-[11px] font-bold">Soirée jazz au Sunside</p>
-          <p className="text-[8px] text-[var(--soft-text)]">3 membres · en ligne</p>
+    <div className="flex h-full flex-col gap-1.5">
+      {/* Header groupe — image + infos */}
+      <div className="relative overflow-hidden rounded-2xl shrink-0" style={{ height: 64 }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/Musique.png" alt="Musique" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.15) 100%)" }} />
+        <div className="absolute bottom-0 left-0 right-0 px-2.5 py-1.5">
+          <p className="text-[11px] font-bold text-white">Soirée jazz au Sunside</p>
+          <div className="flex items-center gap-1.5">
+            <div className="flex -space-x-1">
+              {["#C4603A","#8E5BA8","#6BA89B"].map((c, i) => (
+                <div key={i} className="h-3.5 w-3.5 rounded-full border border-white/60" style={{ background: c }} />
+              ))}
+            </div>
+            <span className="text-[8px] text-white/80">3 membres · en ligne</span>
+          </div>
         </div>
       </div>
-      <div className="space-y-2 px-1 py-1">
+      {/* Messages */}
+      <div className="flex flex-1 flex-col justify-end gap-1.5 px-0.5">
         {msgs.map((m, i) => (
           <div key={i} className={`flex items-end gap-1.5 ${m.me ? "flex-row-reverse" : ""}`}>
             {!m.me && <div className="h-5 w-5 shrink-0 rounded-full" style={{ background: m.color }} />}
-            <div className={`max-w-[75%] rounded-2xl px-2.5 py-1.5 text-[10px] ${m.me ? "bg-[var(--primary)] text-white" : "bg-white text-[var(--foreground)] shadow-sm"}`}>
-              {!m.me && <p className="text-[8px] font-bold opacity-70">{m.name}</p>}
+            <div
+              className="max-w-[75%] rounded-2xl px-2.5 py-1.5 text-[10px]"
+              style={m.me
+                ? { background: "var(--primary)", color: "white" }
+                : { background: "white", color: "var(--foreground)", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }
+              }
+            >
+              {!m.me && <p className="text-[8px] font-bold opacity-60 mb-0.5">{m.name}</p>}
               {m.text}
             </div>
           </div>
         ))}
       </div>
-      <div className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 shadow-sm">
+      {/* Input */}
+      <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-white px-3 py-1.5 shadow-sm">
         <span className="flex-1 text-[10px] text-[var(--soft-text)]">Écrire un message…</span>
-        <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--primary)] text-white text-[10px]">→</div>
+        <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--primary)] text-white text-[10px] font-bold">→</div>
       </div>
     </div>
   );
