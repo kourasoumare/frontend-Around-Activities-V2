@@ -8,7 +8,6 @@ import { Logo } from "@/components/Navbar";
 export default function Landing() {
   return (
     <div className="page-shell">
-      {/* Header on top of hero */}
       <header className="absolute top-0 left-0 right-0 z-20">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-5 md:px-8">
           <Link href="/" className="flex items-center gap-2 text-white">
@@ -24,16 +23,20 @@ export default function Landing() {
         </div>
       </header>
 
-      {/* Hero — texte centré en bas sur mobile, à gauche au centre sur desktop */}
+      {/* Hero */}
       <section className="relative h-[100vh] min-h-[600px] w-full overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/hero.jpg" alt="Amis à Paris" className="absolute inset-0 h-full w-full object-cover" />
-        {/* Gradient desktop : gauche→droite */}
+        <img
+          src="/hero.jpg"
+          alt="Amis à Paris"
+          className="absolute inset-0 h-full w-full object-cover object-[center_30%] md:object-center"
+        />
+        {/* Gradient desktop */}
         <div
           className="absolute inset-0 hidden md:block"
           style={{ background: "linear-gradient(90deg, rgba(20,12,5,0.70) 0%, rgba(20,12,5,0.25) 55%, rgba(20,12,5,0) 100%)" }}
         />
-        {/* Gradient mobile : bas→haut (pour lisibilité du texte en bas) */}
+        {/* Gradient mobile */}
         <div
           className="absolute inset-0 md:hidden"
           style={{ background: "linear-gradient(to top, rgba(10,6,2,0.85) 0%, rgba(10,6,2,0.4) 50%, rgba(10,6,2,0.1) 100%)" }}
@@ -42,7 +45,6 @@ export default function Landing() {
           className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none"
           style={{ background: "linear-gradient(to bottom, rgba(253,250,246,0) 0%, var(--background) 100%)" }}
         />
-        {/* Mobile : texte centré en bas. Desktop : texte à gauche au milieu */}
         <div className="relative z-10 mx-auto flex h-full max-w-7xl flex-col justify-end px-5 pb-20 md:justify-center md:px-8 md:pb-0">
           <div className="text-white md:max-w-2xl">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur">
@@ -118,7 +120,7 @@ export default function Landing() {
   );
 }
 
-/* ---------- Scroll-driven story ---------- */
+/* ─── Données ─── */
 const STEPS = [
   {
     number: "01", kicker: "Explorez",
@@ -137,6 +139,10 @@ const STEPS = [
   },
 ];
 
+const PHONE_H = 470;
+const PHONE_H_MOBILE = 340;
+
+/* ─── Hook scroll ─── */
 function useScrollProgress() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
@@ -159,52 +165,44 @@ function useScrollProgress() {
   return { containerRef, progress };
 }
 
-/* Version mobile : tabs cliquables, téléphone en haut, texte en dessous */
+/* ─── Transitions communes ─── */
+function screenStyle(isActive: boolean, i: number, active: number) {
+  const offset = i < active ? -18 : i > active ? 18 : 0;
+  return {
+    opacity: isActive ? 1 : 0,
+    transform: `translateY(${offset}px) scale(${isActive ? 1 : 0.97})`,
+    filter: isActive ? "blur(0px)" : "blur(3px)",
+    transition: [
+      "opacity 600ms cubic-bezier(0.4, 0, 0.2, 1)",
+      "transform 650ms cubic-bezier(0.22, 1, 0.36, 1)",
+      "filter 500ms cubic-bezier(0.4, 0, 0.2, 1)",
+    ].join(", "),
+    transitionDelay: isActive ? "60ms" : "0ms",
+    pointerEvents: (isActive ? "auto" : "none") as React.CSSProperties["pointerEvents"],
+    willChange: "opacity, transform, filter",
+  };
+}
+
+/* ─── Version mobile ─── */
 function ScrollStoryMobile() {
   const [active, setActive] = useState(0);
   const screens = [<ScreenExplore key="a" />, <ScreenGroup key="b" />, <ScreenChat key="c" />];
 
   return (
-    <div className="mt-10 flex flex-col items-center gap-8">
-      {/* Téléphone */}
-      <PhoneFrame>
-        <div className="relative w-full" style={{ height: PHONE_H }}>
-          {screens.map((s, i) => {
-            const isActive = i === active;
-            const offset = i < active ? -18 : i > active ? 18 : 0;
-            return (
-              <div
-                key={i}
-                className="absolute inset-0 px-3 pt-2 pb-3"
-                style={{
-                  opacity: isActive ? 1 : 0,
-                  transform: `translateY(${offset}px) scale(${isActive ? 1 : 0.97})`,
-                  filter: isActive ? "blur(0px)" : "blur(3px)",
-                  transition: [
-                    "opacity 600ms cubic-bezier(0.4, 0, 0.2, 1)",
-                    "transform 650ms cubic-bezier(0.22, 1, 0.36, 1)",
-                    "filter 500ms cubic-bezier(0.4, 0, 0.2, 1)",
-                  ].join(", "),
-                  transitionDelay: isActive ? "60ms" : "0ms",
-                  pointerEvents: isActive ? "auto" : "none",
-                }}
-              >
-                {s}
-              </div>
-            );
-          })}
+    <div className="mt-10 flex flex-col items-center gap-6">
+      <PhoneFrame mobile>
+        <div className="relative w-full" style={{ height: PHONE_H_MOBILE }}>
+          {screens.map((s, i) => (
+            <div key={i} className="absolute inset-0 px-3 pt-2 pb-3" style={screenStyle(i === active, i, active)}>
+              {s}
+            </div>
+          ))}
         </div>
       </PhoneFrame>
 
-      {/* Texte + dots */}
       <div className="w-full max-w-sm px-2 text-center">
         {STEPS.map((s, i) => (
-          <div
-            key={s.number}
-            style={{
-              display: i === active ? "block" : "none",
-            }}
-          >
+          <div key={s.number} style={{ display: i === active ? "block" : "none" }}>
             <span className="text-xs font-semibold uppercase tracking-[0.25em] text-[var(--primary)]">{s.kicker}</span>
             <h3 className="mt-2 font-display text-2xl font-bold leading-tight">
               {s.titleA}<em className="italic text-[var(--primary)]">{s.titleEm}</em>
@@ -212,18 +210,17 @@ function ScrollStoryMobile() {
             <p className="mt-3 text-sm leading-relaxed text-[var(--muted-text)]">{s.text}</p>
           </div>
         ))}
-
-        {/* Dots cliquables */}
         <div className="mt-6 flex items-center justify-center gap-3">
           {STEPS.map((_, i) => (
             <button
               key={i}
               onClick={() => setActive(i)}
-              className="rounded-full transition-all duration-400"
+              className="rounded-full"
               style={{
                 width: i === active ? 32 : 12,
                 height: 6,
                 background: i === active ? "var(--primary)" : "rgba(196,96,58,0.25)",
+                transition: "width 400ms cubic-bezier(0.22, 1, 0.36, 1), background 400ms ease",
               }}
             />
           ))}
@@ -233,7 +230,7 @@ function ScrollStoryMobile() {
   );
 }
 
-/* Version desktop : scroll-driven */
+/* ─── Version desktop ─── */
 function ScrollStoryDesktop() {
   const { containerRef, progress } = useScrollProgress();
   const active = Math.round(progress);
@@ -244,40 +241,18 @@ function ScrollStoryDesktop() {
       <div className="sticky top-0 flex h-screen items-center">
         <div className="grid w-full grid-cols-2 items-center gap-16">
 
-          {/* Téléphone */}
           <div className="flex justify-center">
             <PhoneFrame>
               <div className="relative w-full" style={{ height: PHONE_H }}>
-                {screens.map((s, i) => {
-                  const isActive = i === active;
-                  const offset = i < active ? -18 : i > active ? 18 : 0;
-                  return (
-                    <div
-                      key={i}
-                      className="absolute inset-0 px-3 pt-2 pb-3"
-                      style={{
-                        opacity: isActive ? 1 : 0,
-                        transform: `translateY(${offset}px) scale(${isActive ? 1 : 0.97})`,
-                        filter: isActive ? "blur(0px)" : "blur(3px)",
-                        transition: [
-                          "opacity 600ms cubic-bezier(0.4, 0, 0.2, 1)",
-                          "transform 650ms cubic-bezier(0.22, 1, 0.36, 1)",
-                          "filter 500ms cubic-bezier(0.4, 0, 0.2, 1)",
-                        ].join(", "),
-                        transitionDelay: isActive ? "60ms" : "0ms",
-                        pointerEvents: isActive ? "auto" : "none",
-                        willChange: "opacity, transform, filter",
-                      }}
-                    >
-                      {s}
-                    </div>
-                  );
-                })}
+                {screens.map((s, i) => (
+                  <div key={i} className="absolute inset-0 px-3 pt-2 pb-3" style={screenStyle(i === active, i, active)}>
+                    {s}
+                  </div>
+                ))}
               </div>
             </PhoneFrame>
           </div>
 
-          {/* Texte */}
           <div className="relative min-h-[400px]">
             {STEPS.map((s, i) => (
               <span
@@ -346,7 +321,7 @@ function ScrollStoryDesktop() {
   );
 }
 
-/* Wrapper qui affiche la bonne version selon la taille d'écran */
+/* ─── Wrapper ─── */
 function ScrollStory() {
   return (
     <>
@@ -360,17 +335,21 @@ function ScrollStory() {
   );
 }
 
-const PHONE_H = 470;
-
-function PhoneFrame({ children }: { children: React.ReactNode }) {
+/* ─── PhoneFrame ─── */
+function PhoneFrame({ children, mobile = false }: { children: React.ReactNode; mobile?: boolean }) {
   return (
-    <div className="relative w-[260px] rounded-[2.2rem] border-[5px] border-[#1a1410] bg-[#FDFAF6] shadow-[var(--shadow-lift)] md:w-[290px]">
+    <div
+      className="relative rounded-[2.2rem] border-[5px] border-[#1a1410] bg-[#FDFAF6] shadow-[var(--shadow-lift)]"
+      style={{ width: mobile ? 230 : 290 }}
+    >
       <div className="absolute left-1/2 top-1.5 z-10 h-4 w-20 -translate-x-1/2 rounded-full bg-[#1a1410]" />
       <div className="overflow-hidden rounded-[1.7rem]">
         <div className="flex items-center justify-between px-6 pt-2.5 pb-1 text-[10px] font-semibold text-[var(--foreground)]">
           <span>9:41</span><span>● ● ●</span>
         </div>
-        <div className="relative overflow-hidden" style={{ height: PHONE_H }}>{children}</div>
+        <div className="relative overflow-hidden" style={{ height: mobile ? PHONE_H_MOBILE : PHONE_H }}>
+          {children}
+        </div>
         <div className="flex items-center justify-around border-t border-[var(--border)] bg-white/70 px-2 py-2">
           {[
             { Icon: Compass, label: "Explorer" },
@@ -389,12 +368,13 @@ function PhoneFrame({ children }: { children: React.ReactNode }) {
   );
 }
 
+/* ─── Écrans ─── */
 function ScreenExplore() {
   const activities = [
-    { title: "Yoga du matin", category: "Bien-être", img: "/bien etre.png", members: 12 },
-    { title: "Expo Pompidou", category: "Art & Culture", img: "/art.png", members: 8 },
-    { title: "Foot à Vincennes", category: "Sport", img: "/sport.png", members: 18 },
-    { title: "Soirée techno", category: "Divertissement", img: "/divertissement.png", members: 24 },
+    { title: "Yoga du matin", img: "/bien etre.png", members: 12 },
+    { title: "Expo Pompidou", img: "/art.png", members: 8 },
+    { title: "Foot à Vincennes", img: "/sport.png", members: 18 },
+    { title: "Soirée techno", img: "/divertissement.png", members: 24 },
   ];
   return (
     <div className="space-y-2">
@@ -402,7 +382,7 @@ function ScreenExplore() {
         <Search className="h-3 w-3 text-[var(--soft-text)]" />
         <span className="flex-1 text-[10px] text-[var(--soft-text)]">Rechercher une activité…</span>
       </div>
-      <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
+      <div className="flex gap-1.5 overflow-x-auto pb-0.5">
         {["Tout", "Sport", "Art", "Cuisine", "Musique"].map((f, i) => (
           <span
             key={f}
@@ -416,11 +396,7 @@ function ScreenExplore() {
       </div>
       <div className="grid grid-cols-2 gap-1.5">
         {activities.map((a) => (
-          <div
-            key={a.title}
-            className="relative overflow-hidden rounded-2xl"
-            style={{ height: 90 }}
-          >
+          <div key={a.title} className="relative overflow-hidden rounded-2xl" style={{ height: 80 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={a.img} alt={a.title} className="absolute inset-0 h-full w-full object-cover" />
             <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.1) 60%)" }} />
@@ -453,7 +429,7 @@ function ScreenGroup() {
   ];
   return (
     <div className="space-y-2">
-      <div className="relative overflow-hidden rounded-2xl" style={{ height: 72 }}>
+      <div className="relative overflow-hidden rounded-2xl" style={{ height: 64 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/art.png" alt="Art & Culture" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 100%)" }} />
@@ -466,7 +442,7 @@ function ScreenGroup() {
       <p className="text-[9px] font-semibold uppercase tracking-wider text-[var(--muted-text)]">Sorties à venir</p>
       {groups.map((g) => (
         <div key={g.title} className="overflow-hidden rounded-2xl bg-white shadow-sm">
-          <div className="relative" style={{ height: 52 }}>
+          <div className="relative" style={{ height: 46 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={g.img} alt={g.title} className="absolute inset-0 h-full w-full object-cover" />
             <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 60%)" }} />
@@ -476,7 +452,7 @@ function ScreenGroup() {
             <div>
               <p className="text-[8px] text-[var(--soft-text)]">{g.date}</p>
               <div className="mt-0.5 flex items-center gap-1">
-                <div className="h-1 w-16 overflow-hidden rounded-full bg-[var(--border)]">
+                <div className="h-1 w-14 overflow-hidden rounded-full bg-[var(--border)]">
                   <div className="h-full rounded-full bg-[var(--primary)]" style={{ width: `${(g.members / g.max) * 100}%` }} />
                 </div>
                 <span className="text-[8px] text-[var(--muted-text)]">{g.members}/{g.max}</span>
@@ -502,7 +478,7 @@ function ScreenChat() {
   ];
   return (
     <div className="flex h-full flex-col gap-1.5">
-      <div className="relative overflow-hidden rounded-2xl shrink-0" style={{ height: 64 }}>
+      <div className="relative overflow-hidden rounded-2xl shrink-0" style={{ height: 58 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/Musique.png" alt="Musique" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.15) 100%)" }} />
