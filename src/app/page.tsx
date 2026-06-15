@@ -24,33 +24,40 @@ export default function Landing() {
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="relative h-[100vh] min-h-[640px] w-full overflow-hidden">
+      {/* Hero — texte centré en bas sur mobile, à gauche au centre sur desktop */}
+      <section className="relative h-[100vh] min-h-[600px] w-full overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/hero.jpg" alt="Amis à Paris" className="absolute inset-0 h-full w-full object-cover" />
+        {/* Gradient desktop : gauche→droite */}
         <div
-          className="absolute inset-0"
-          style={{ background: "linear-gradient(90deg, rgba(20,12,5,0.65) 0%, rgba(20,12,5,0.25) 50%, rgba(20,12,5,0) 100%)" }}
+          className="absolute inset-0 hidden md:block"
+          style={{ background: "linear-gradient(90deg, rgba(20,12,5,0.70) 0%, rgba(20,12,5,0.25) 55%, rgba(20,12,5,0) 100%)" }}
+        />
+        {/* Gradient mobile : bas→haut (pour lisibilité du texte en bas) */}
+        <div
+          className="absolute inset-0 md:hidden"
+          style={{ background: "linear-gradient(to top, rgba(10,6,2,0.85) 0%, rgba(10,6,2,0.4) 50%, rgba(10,6,2,0.1) 100%)" }}
         />
         <div
           className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none"
           style={{ background: "linear-gradient(to bottom, rgba(253,250,246,0) 0%, var(--background) 100%)" }}
         />
-        <div className="relative z-10 mx-auto flex h-full max-w-7xl items-center px-4 md:px-8">
-          <div className="max-w-2xl text-white">
+        {/* Mobile : texte centré en bas. Desktop : texte à gauche au milieu */}
+        <div className="relative z-10 mx-auto flex h-full max-w-7xl flex-col justify-end px-5 pb-20 md:justify-center md:px-8 md:pb-0">
+          <div className="text-white md:max-w-2xl">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur">
               <Sparkles className="h-3.5 w-3.5" /> Nouvelle aventure en France
             </span>
-            <h1 className="mt-6 font-display text-5xl font-bold leading-[1.05] sm:text-6xl md:text-7xl">
+            <h1 className="mt-4 font-display text-[2.4rem] font-bold leading-[1.05] sm:text-5xl md:text-6xl lg:text-7xl">
               Des activités.<br />
               <span className="bg-gradient-to-r from-[#FFD1A8] to-[#FF9966] bg-clip-text text-transparent">
                 De vraies rencontres.
               </span>
             </h1>
-            <p className="mt-6 max-w-xl text-lg text-white/85">
+            <p className="mt-4 text-base text-white/85 md:mt-6 md:max-w-xl md:text-lg">
               Rejoins des groupes à taille humaine, découvre ta nouvelle ville et rencontre des personnes qui partagent tes centres d&apos;intérêt.
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-4">
+            <div className="mt-6 md:mt-8">
               <Link href="/inscription" className="btn-primary !px-7 !py-3.5 text-base">
                 Commencer l&apos;aventure <ArrowRight className="h-4 w-4" />
               </Link>
@@ -61,31 +68,31 @@ export default function Landing() {
 
       {/* Concept */}
       <section id="concept" className="relative isolate radial-home">
-        <div className="relative z-10 mx-auto max-w-7xl px-4 py-24 md:px-8">
+        <div className="relative z-10 mx-auto max-w-7xl px-4 py-16 md:py-24 md:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <span className="text-xs font-semibold uppercase tracking-[0.25em] text-[var(--primary)]">Comment ça marche</span>
-            <h2 className="mt-4 font-display text-4xl font-bold sm:text-5xl md:text-6xl">Trois étapes, mille histoires.</h2>
+            <h2 className="mt-4 font-display text-3xl font-bold sm:text-5xl md:text-6xl">Trois étapes, mille histoires.</h2>
           </div>
           <ScrollStory />
         </div>
       </section>
 
       {/* CTA */}
-      <section className="relative py-20 md:py-28">
+      <section className="relative py-16 md:py-28">
         <div className="mx-auto max-w-5xl px-5 md:px-8">
           <div
-            className="relative overflow-hidden rounded-[2rem] p-10 md:p-16"
+            className="relative overflow-hidden rounded-[2rem] p-8 md:p-16"
             style={{ background: "var(--gradient-primary)", boxShadow: "var(--shadow-warm)" }}
           >
             <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
             <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-black/10 blur-3xl" />
-            <div className="relative flex flex-col items-start justify-between gap-8 md:flex-row md:items-center">
+            <div className="relative flex flex-col items-start justify-between gap-6 md:flex-row md:items-center md:gap-8">
               <div className="text-white">
-                <h3 className="font-display text-3xl font-bold leading-tight sm:text-5xl">
+                <h3 className="font-display text-2xl font-bold leading-tight sm:text-4xl md:text-5xl">
                   Prêt·e à rencontrer<br />
                   <span className="italic">votre nouvelle bande ?</span>
                 </h3>
-                <p className="mt-3 text-white/85">Crée ton compte en moins d&apos;une minute, gratuitement.</p>
+                <p className="mt-3 text-sm text-white/85 md:text-base">Crée ton compte en moins d&apos;une minute, gratuitement.</p>
               </div>
               <Link
                 href="/inscription"
@@ -98,7 +105,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <footer className="relative border-t border-[var(--border)] px-5 py-10 md:px-8">
+      <footer className="relative border-t border-[var(--border)] px-5 py-8 md:py-10 md:px-8">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 text-sm text-[var(--muted-text)] md:flex-row">
           <div className="flex items-center gap-2">
             <Logo />
@@ -130,7 +137,6 @@ const STEPS = [
   },
 ];
 
-// Retourne une valeur entre 0 et 1 représentant la progression entre deux steps
 function useScrollProgress() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
@@ -153,7 +159,82 @@ function useScrollProgress() {
   return { containerRef, progress };
 }
 
-function ScrollStory() {
+/* Version mobile : tabs cliquables, téléphone en haut, texte en dessous */
+function ScrollStoryMobile() {
+  const [active, setActive] = useState(0);
+  const screens = [<ScreenExplore key="a" />, <ScreenGroup key="b" />, <ScreenChat key="c" />];
+
+  return (
+    <div className="mt-10 flex flex-col items-center gap-8">
+      {/* Téléphone */}
+      <PhoneFrame>
+        <div className="relative w-full" style={{ height: PHONE_H }}>
+          {screens.map((s, i) => {
+            const isActive = i === active;
+            const offset = i < active ? -18 : i > active ? 18 : 0;
+            return (
+              <div
+                key={i}
+                className="absolute inset-0 px-3 pt-2 pb-3"
+                style={{
+                  opacity: isActive ? 1 : 0,
+                  transform: `translateY(${offset}px) scale(${isActive ? 1 : 0.97})`,
+                  filter: isActive ? "blur(0px)" : "blur(3px)",
+                  transition: [
+                    "opacity 600ms cubic-bezier(0.4, 0, 0.2, 1)",
+                    "transform 650ms cubic-bezier(0.22, 1, 0.36, 1)",
+                    "filter 500ms cubic-bezier(0.4, 0, 0.2, 1)",
+                  ].join(", "),
+                  transitionDelay: isActive ? "60ms" : "0ms",
+                  pointerEvents: isActive ? "auto" : "none",
+                }}
+              >
+                {s}
+              </div>
+            );
+          })}
+        </div>
+      </PhoneFrame>
+
+      {/* Texte + dots */}
+      <div className="w-full max-w-sm px-2 text-center">
+        {STEPS.map((s, i) => (
+          <div
+            key={s.number}
+            style={{
+              display: i === active ? "block" : "none",
+            }}
+          >
+            <span className="text-xs font-semibold uppercase tracking-[0.25em] text-[var(--primary)]">{s.kicker}</span>
+            <h3 className="mt-2 font-display text-2xl font-bold leading-tight">
+              {s.titleA}<em className="italic text-[var(--primary)]">{s.titleEm}</em>
+            </h3>
+            <p className="mt-3 text-sm leading-relaxed text-[var(--muted-text)]">{s.text}</p>
+          </div>
+        ))}
+
+        {/* Dots cliquables */}
+        <div className="mt-6 flex items-center justify-center gap-3">
+          {STEPS.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setActive(i)}
+              className="rounded-full transition-all duration-400"
+              style={{
+                width: i === active ? 32 : 12,
+                height: 6,
+                background: i === active ? "var(--primary)" : "rgba(196,96,58,0.25)",
+              }}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* Version desktop : scroll-driven */
+function ScrollStoryDesktop() {
   const { containerRef, progress } = useScrollProgress();
   const active = Math.round(progress);
   const screens = [<ScreenExplore key="a" />, <ScreenGroup key="b" />, <ScreenChat key="c" />];
@@ -161,21 +242,14 @@ function ScrollStory() {
   return (
     <div ref={containerRef} className="relative mt-20" style={{ height: `${STEPS.length * 100}vh` }}>
       <div className="sticky top-0 flex h-screen items-center">
-        <div className="grid w-full grid-cols-1 items-center gap-12 md:grid-cols-2 md:gap-16">
+        <div className="grid w-full grid-cols-2 items-center gap-16">
 
-          {/* ── Téléphone ── */}
+          {/* Téléphone */}
           <div className="flex justify-center">
             <PhoneFrame>
-              {/*
-                Chaque écran est en position absolute dans le conteneur du téléphone.
-                On combine opacity + scale + translateY + blur pour une transition
-                totalement fluide et naturelle — l'écran sortant glisse vers le haut
-                en s'estompant, le suivant monte depuis le bas en apparaissant.
-              */}
               <div className="relative w-full" style={{ height: PHONE_H }}>
                 {screens.map((s, i) => {
                   const isActive = i === active;
-                  // L'écran précédent sort vers le haut, le suivant entre par le bas
                   const offset = i < active ? -18 : i > active ? 18 : 0;
                   return (
                     <div
@@ -190,7 +264,6 @@ function ScrollStory() {
                           "transform 650ms cubic-bezier(0.22, 1, 0.36, 1)",
                           "filter 500ms cubic-bezier(0.4, 0, 0.2, 1)",
                         ].join(", "),
-                        // Le texte entrant apparaît avec 60ms de délai par rapport au téléphone
                         transitionDelay: isActive ? "60ms" : "0ms",
                         pointerEvents: isActive ? "auto" : "none",
                         willChange: "opacity, transform, filter",
@@ -204,14 +277,13 @@ function ScrollStory() {
             </PhoneFrame>
           </div>
 
-          {/* ── Texte ── */}
+          {/* Texte */}
           <div className="relative min-h-[400px]">
-            {/* Numéro géant en fond — crossfade doux */}
             {STEPS.map((s, i) => (
               <span
                 key={s.number}
                 aria-hidden
-                className="pointer-events-none absolute -top-20 -left-2 select-none font-display text-[11rem] font-bold leading-none md:text-[14rem]"
+                className="pointer-events-none absolute -top-20 -left-2 select-none font-display text-[14rem] font-bold leading-none"
                 style={{
                   color: "rgba(196, 96, 58, 0.10)",
                   opacity: i === active ? 1 : 0,
@@ -233,21 +305,19 @@ function ScrollStory() {
                   style={{
                     opacity: isActive ? 1 : 0,
                     transform: `translateY(${offsetText}px)`,
-                    // Léger flou sur le texte sortant pour renforcer la sensation de profondeur
                     filter: isActive ? "blur(0px)" : "blur(2px)",
                     transition: [
                       "opacity 550ms cubic-bezier(0.4, 0, 0.2, 1)",
                       "transform 600ms cubic-bezier(0.22, 1, 0.36, 1)",
                       "filter 450ms cubic-bezier(0.4, 0, 0.2, 1)",
                     ].join(", "),
-                    // Le texte change légèrement après le téléphone → stagger naturel
                     transitionDelay: isActive ? "120ms" : "0ms",
                     pointerEvents: isActive ? "auto" : "none",
                     willChange: "opacity, transform, filter",
                   }}
                 >
                   <span className="text-xs font-semibold uppercase tracking-[0.25em] text-[var(--primary)]">{s.kicker}</span>
-                  <h3 className="relative mt-3 font-display text-4xl font-bold leading-[1.05] sm:text-5xl md:text-6xl">
+                  <h3 className="relative mt-3 font-display text-5xl font-bold leading-[1.05] md:text-6xl">
                     {s.titleA}<em className="italic text-[var(--primary)]">{s.titleEm}</em>
                   </h3>
                   <p className="relative mt-6 max-w-md text-lg leading-relaxed text-[var(--muted-text)]">{s.text}</p>
@@ -255,7 +325,6 @@ function ScrollStory() {
               );
             })}
 
-            {/* Indicateurs dots */}
             <div className="absolute -bottom-4 left-0 flex gap-2">
               {STEPS.map((_, i) => (
                 <span
@@ -277,11 +346,25 @@ function ScrollStory() {
   );
 }
 
+/* Wrapper qui affiche la bonne version selon la taille d'écran */
+function ScrollStory() {
+  return (
+    <>
+      <div className="md:hidden">
+        <ScrollStoryMobile />
+      </div>
+      <div className="hidden md:block">
+        <ScrollStoryDesktop />
+      </div>
+    </>
+  );
+}
+
 const PHONE_H = 470;
 
 function PhoneFrame({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative w-[290px] rounded-[2.2rem] border-[5px] border-[#1a1410] bg-[#FDFAF6] shadow-[var(--shadow-lift)]">
+    <div className="relative w-[260px] rounded-[2.2rem] border-[5px] border-[#1a1410] bg-[#FDFAF6] shadow-[var(--shadow-lift)] md:w-[290px]">
       <div className="absolute left-1/2 top-1.5 z-10 h-4 w-20 -translate-x-1/2 rounded-full bg-[#1a1410]" />
       <div className="overflow-hidden rounded-[1.7rem]">
         <div className="flex items-center justify-between px-6 pt-2.5 pb-1 text-[10px] font-semibold text-[var(--foreground)]">
@@ -315,12 +398,10 @@ function ScreenExplore() {
   ];
   return (
     <div className="space-y-2">
-      {/* Barre de recherche */}
       <div className="flex items-center gap-2 rounded-full bg-white px-3 py-1.5 shadow-sm">
         <Search className="h-3 w-3 text-[var(--soft-text)]" />
         <span className="flex-1 text-[10px] text-[var(--soft-text)]">Rechercher une activité…</span>
       </div>
-      {/* Filtres pills */}
       <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
         {["Tout", "Sport", "Art", "Cuisine", "Musique"].map((f, i) => (
           <span
@@ -333,7 +414,6 @@ function ScreenExplore() {
           >{f}</span>
         ))}
       </div>
-      {/* Vraies ActivityCards — image pleine + overlay gradient + titre blanc */}
       <div className="grid grid-cols-2 gap-1.5">
         {activities.map((a) => (
           <div
@@ -354,7 +434,6 @@ function ScreenExplore() {
           </div>
         ))}
       </div>
-      {/* Bandeau social */}
       <div className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[var(--primary)] to-[var(--primary-2)] p-2 text-white">
         <div className="flex -space-x-1.5 shrink-0">
           {["#C4603A","#8E5BA8","#6BA89B","#4A8C5E"].map((c, i) => (
@@ -374,7 +453,6 @@ function ScreenGroup() {
   ];
   return (
     <div className="space-y-2">
-      {/* Header activité */}
       <div className="relative overflow-hidden rounded-2xl" style={{ height: 72 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/art.png" alt="Art & Culture" className="absolute inset-0 h-full w-full object-cover" />
@@ -385,9 +463,7 @@ function ScreenGroup() {
         </div>
         <span className="absolute right-2 top-2 rounded-full bg-[var(--primary)] px-2 py-0.5 text-[8px] font-bold text-white">Membre ✓</span>
       </div>
-      {/* Label section */}
       <p className="text-[9px] font-semibold uppercase tracking-wider text-[var(--muted-text)]">Sorties à venir</p>
-      {/* Cartes groupes */}
       {groups.map((g) => (
         <div key={g.title} className="overflow-hidden rounded-2xl bg-white shadow-sm">
           <div className="relative" style={{ height: 52 }}>
@@ -400,7 +476,6 @@ function ScreenGroup() {
             <div>
               <p className="text-[8px] text-[var(--soft-text)]">{g.date}</p>
               <div className="mt-0.5 flex items-center gap-1">
-                {/* Barre progression */}
                 <div className="h-1 w-16 overflow-hidden rounded-full bg-[var(--border)]">
                   <div className="h-full rounded-full bg-[var(--primary)]" style={{ width: `${(g.members / g.max) * 100}%` }} />
                 </div>
@@ -411,7 +486,6 @@ function ScreenGroup() {
           </div>
         </div>
       ))}
-      {/* Proposer une sortie */}
       <button className="flex w-full items-center justify-center gap-1 rounded-full border-2 border-dashed border-[var(--border)] py-1.5 text-[9px] font-semibold text-[var(--muted-text)]">
         <Plus className="h-3 w-3" /> Proposer une sortie
       </button>
@@ -428,7 +502,6 @@ function ScreenChat() {
   ];
   return (
     <div className="flex h-full flex-col gap-1.5">
-      {/* Header groupe — image + infos */}
       <div className="relative overflow-hidden rounded-2xl shrink-0" style={{ height: 64 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/Musique.png" alt="Musique" className="absolute inset-0 h-full w-full object-cover" />
@@ -445,7 +518,6 @@ function ScreenChat() {
           </div>
         </div>
       </div>
-      {/* Messages */}
       <div className="flex flex-1 flex-col justify-end gap-1.5 px-0.5">
         {msgs.map((m, i) => (
           <div key={i} className={`flex items-end gap-1.5 ${m.me ? "flex-row-reverse" : ""}`}>
@@ -463,7 +535,6 @@ function ScreenChat() {
           </div>
         ))}
       </div>
-      {/* Input */}
       <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-white px-3 py-1.5 shadow-sm">
         <span className="flex-1 text-[10px] text-[var(--soft-text)]">Écrire un message…</span>
         <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--primary)] text-white text-[10px] font-bold">→</div>
