@@ -11,6 +11,8 @@ import { useToast } from "@/context/ToastContext";
 import { useSocketContext } from "@/context/SocketContext";
 import { Calendar, MapPin, Users, Send, ChevronLeft, Navigation, Map as MapIcon } from "lucide-react";
 
+type MobileTab = "details" | "chat";
+
 function GroupDetailContent() {
   const params = useParams();
   const id = params.id as string;
@@ -23,20 +25,23 @@ function GroupDetailContent() {
   const [isMember, setIsMember] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
+  const [mobileTab, setMobileTab] = useState<MobileTab>("details");
+  const [memberCount, setMemberCount] = useState(0);
 
   const currentUser = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "{}") : {};
 
   useEffect(() => {
     getGroupByIdApi(Number(id))
       .then((data) => {
-        setGroup(data as BackendGroup);
+        const g = data as BackendGroup;
+        setGroup(g);
+        setMemberCount(g.memberships?.length ?? 0);
         const uid = currentUser.id;
-        const member = (data as BackendGroup).memberships?.some((m) => m.user_id === uid) ?? false;
-        setIsMember(member || (data as BackendGroup).creator_id === uid);
+        const member = g.memberships?.some((m) => m.user_id === uid) ?? false;
+        setIsMember(member || g.creator_id === uid);
       })
       .catch(() => setGroup(null))
       .finally(() => setLoading(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
@@ -66,10 +71,12 @@ function GroupDetailContent() {
       if (isMember) {
         await leaveGroupApi(group.id);
         setIsMember(false);
+        setMemberCount((prev) => prev - 1);
         showToast("Tu as quitté le groupe.", "success");
       } else {
         await joinGroupApi(group.id);
         setIsMember(true);
+        setMemberCount((prev) => prev + 1);
         showToast("Tu as rejoint le groupe !", "success");
       }
     } catch (err) {
@@ -106,88 +113,116 @@ function GroupDetailContent() {
 
   const category = getCategoryOption(group.activities?.category);
   const cat = category ? { color: category.color, label: category.shortLabel } : null;
-  const taken = group.memberships?.length ?? 0;
   const isCreator = group.creator_id === currentUser.id;
-  const dateStr = new Date(group.meeting_date).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+  const dateStr = new Date(group.meeting_date).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+  const timeStr = new Date(group.meeting_date).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
   const address = encodeURIComponent(`${group.location}, ${group.city}`);
 
   return (
     <PageShell variant="group">
-      <div className="mx-auto max-w-7xl px-4 pt-8 md:px-8">
-        {group.activities ? (
-          <Link href={`/activites/${group.activities.id}`} className="inline-flex items-center gap-1 text-sm text-[var(--muted-text)] hover:text-[var(--foreground)]">
-            <ChevronLeft className="h-4 w-4" /> {group.activities.title}
-          </Link>
-        ) : (
-          <Link href="/home" className="inline-flex items-center gap-1 text-sm text-[var(--muted-text)] hover:text-[var(--foreground)]">
-            <ChevronLeft className="h-4 w-4" /> Explorer
-          </Link>
-        )}
+      <div className="mx-auto max-w-7xl px-4 py-6 md:px-8">
 
-        <div className="mt-3">
-          {cat && <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: cat.color }}>{cat.label}</span>}
-          <h1 className="mt-1 font-display text-4xl font-bold sm:text-5xl">{group.name}</h1>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <span className="pill"><Calendar className="h-3.5 w-3.5" /> {dateStr}</span>
-            <span className="pill"><MapPin className="h-3.5 w-3.5" /> {group.location}</span>
-            <span className="pill"><Users className="h-3.5 w-3.5" /> {taken} / {group.max_members}</span>
+        {/* Header */}
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            {group.activities ? (
+              <Link href={`/activites/${group.activities.id}`} className="mb-2 inline-flex items-center gap-1 text-sm text-[var(--muted-text)] hover:text-[var(--primary)]">
+                <ChevronLeft className="h-4 w-4" /> {group.activities.title}
+              </Link>
+            ) : (
+              <Link href="/home" className="mb-2 inline-flex items-center gap-1 text-sm text-[var(--muted-text)] hover:text-[var(--primary)]">
+                <ChevronLeft className="h-4 w-4" /> Explorer
+              </Link>
+            )}
+            <h1 className="font-display text-3xl font-bold md:text-4xl">{group.name}</h1>
+            <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-[var(--muted-text)]">
+              <span className="inline-flex items-center gap-1.5">
+                <Calendar className="h-4 w-4" /> {dateStr} à {timeStr}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <MapPin className="h-4 w-4" /> {group.location}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Users className="h-4 w-4" /> {memberCount} / {group.max_members}
+              </span>
+              {cat && (
+                <span
+                  className="rounded-full px-2.5 py-0.5 text-xs font-semibold text-white"
+                  style={{ background: cat.color }}
+                >
+                  {cat.label}
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="shrink-0">
+            {isCreator ? (
+              <span className="rounded-full border border-[var(--border)] px-5 py-2.5 text-sm font-medium text-[var(--muted-text)]">
+                Tu es organisateur
+              </span>
+            ) : (
+              <button onClick={handleJoinLeave} className={isMember ? "rounded-full border border-[var(--border)] px-5 py-2.5 text-sm font-medium text-[var(--muted-text)] transition hover:bg-white/60" : "btn-primary"}>
+                {isMember ? "Quitter le groupe" : "Rejoindre le groupe"}
+              </button>
+            )}
           </div>
         </div>
 
-        <div className="mt-8 grid gap-6 md:grid-cols-[1fr_320px]">
-          <div className="space-y-6">
-            {/* Group chat */}
-            <div className="glass-card flex h-[420px] flex-col">
-              <div className="border-b border-[var(--border)] px-5 py-3 text-sm font-semibold">Chat du groupe</div>
-              <div className="flex-1 space-y-3 overflow-y-auto p-5">
-                {messages.length === 0 && (
-                  <div className="py-8 text-center text-sm text-[var(--muted-text)]">
-                    {isMember ? "Sois le premier à écrire !" : "Rejoins le groupe pour écrire."}
-                  </div>
-                )}
-                {messages.map((m, i) => {
-                  const isMe = m.sender_id === currentUser.id;
-                  return (
-                    <div key={i} className={`flex items-end gap-2 ${isMe ? "justify-end" : ""}`}>
-                      {!isMe && <Avatar name={m.sender?.first_name ?? "?"} size={28} />}
-                      <div
-                        className={`max-w-[70%] rounded-2xl px-4 py-2 text-sm ${isMe ? "text-white" : "bg-white/80"}`}
-                        style={isMe ? { background: "var(--gradient-primary)" } : undefined}
-                      >
-                        {!isMe && <p className="mb-0.5 text-xs font-semibold opacity-70">{m.sender?.first_name}</p>}
-                        {m.content}
-                      </div>
-                    </div>
-                  );
-                })}
-                <div ref={chatEndRef} />
-              </div>
-              {isMember ? (
-                <form
-                  className="flex items-center gap-2 border-t border-[var(--border)] p-3"
-                  onSubmit={(e) => { e.preventDefault(); sendMessage(); }}
-                >
-                  <input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Écris un message…" className="field !py-2.5" />
-                  <button className="btn-primary !p-3"><Send className="h-4 w-4" /></button>
-                </form>
-              ) : (
-                <div className="border-t border-[var(--border)] p-3 text-center text-sm text-[var(--muted-text)]">
-                  Rejoins le groupe pour participer au chat
-                </div>
-              )}
-            </div>
+        {/* Mobile tabs */}
+        <div className="mb-4 flex gap-1 rounded-full bg-white/60 p-1 backdrop-blur w-fit md:hidden">
+          {(["details", "chat"] as MobileTab[]).map((t) => (
+            <button
+              key={t}
+              onClick={() => setMobileTab(t)}
+              className="rounded-full px-4 py-2 text-sm font-medium transition"
+              style={mobileTab === t
+                ? { background: "var(--gradient-primary)", color: "white" }
+                : { color: "var(--muted-text)" }
+              }
+            >
+              {t === "details" ? "Détails" : "Chat"}
+            </button>
+          ))}
+        </div>
 
-            {/* About */}
+        {/* Layout 2 colonnes */}
+        <div className="grid gap-6 md:grid-cols-2">
+
+          {/* Colonne gauche — Détails + Membres */}
+          <div className={`flex flex-col gap-4 ${mobileTab !== "details" ? "hidden md:flex" : "flex"}`}>
+
+            {/* Détails */}
             <div className="glass-card p-6">
-              <h2 className="font-display text-xl font-bold">À propos de cette sortie</h2>
-              <p className="mt-2 text-[var(--muted-text)]">{group.description}</p>
+              <h2 className="font-display text-lg font-bold mb-4">Détails</h2>
+              {group.description && (
+                <p className="text-sm text-[var(--muted-text)]">{group.description}</p>
+              )}
+              <div className="mt-5 flex flex-col gap-2">
+                {!isCreator && (
+                  <button
+                    onClick={handleJoinLeave}
+                    className={isMember ? "rounded-full border border-[var(--border)] px-5 py-2.5 text-sm font-medium text-[var(--muted-text)] transition hover:bg-white/60 w-full" : "btn-primary w-full"}
+                  >
+                    {isMember ? "Quitter le groupe" : "Rejoindre le groupe"}
+                  </button>
+                )}
+                <a href={"https://www.google.com/maps/dir/?api=1&destination=" + address} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-2xl border border-[var(--border)] bg-white/70 px-4 py-3 text-sm font-medium transition hover:bg-white">
+                  <MapIcon className="h-4 w-4" /> Ouvrir dans Maps
+                </a>
+                <a href={"https://citymapper.com/directions?endname=" + address} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-2xl border border-[var(--border)] bg-white/70 px-4 py-3 text-sm font-medium transition hover:bg-white">
+                  <Navigation className="h-4 w-4" /> Itinéraire CityMapper
+                </a>
+              </div>
             </div>
 
-            {/* Members */}
+             
+            
+
+            {/* Membres */}
             {group.memberships && group.memberships.length > 0 && (
               <div className="glass-card p-6">
-                <h2 className="font-display text-xl font-bold">Membres ({taken})</h2>
-                <div className="mt-4 flex flex-wrap gap-3">
+                <h2 className="font-display text-lg font-bold mb-4">Membres ({memberCount})</h2>
+                <div className="flex flex-wrap gap-3">
                   {group.memberships.map((m) => {
                     const u = m.users ?? { id: m.user_id, first_name: "?", last_name: "" };
                     const name = `${(u as any).first_name ?? ""} ${(u as any).last_name ?? ""}`.trim();
@@ -195,7 +230,7 @@ function GroupDetailContent() {
                       <Link
                         key={m.id}
                         href={`/profil/${m.user_id}`}
-                        className="flex items-center gap-2 rounded-full bg-white/70 py-1.5 pl-1.5 pr-4 hover:bg-white"
+                        className="flex items-center gap-2 rounded-full bg-white/70 py-1.5 pl-1.5 pr-4 hover:bg-white transition"
                       >
                         <Avatar name={name || "?"} size={32} />
                         <span className="text-sm font-medium">{(u as any).first_name}</span>
@@ -207,53 +242,69 @@ function GroupDetailContent() {
             )}
           </div>
 
-          {/* Sidebar */}
-          <aside>
-            <div className="glass-card sticky top-24 p-6">
-              {isCreator ? (
-                <span className="pill pill-active mb-3 w-full justify-center" style={{ background: "var(--gradient-primary)" }}>
-                  Tu es organisateur
-                </span>
-              ) : (
-                <button onClick={handleJoinLeave} className={`w-full ${isMember ? "btn-secondary" : "btn-primary"}`}>
-                  {isMember ? "Quitter le groupe" : "Rejoindre"}
-                </button>
-              )}
-
-              <div className="mt-5 grid gap-2">
-                <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${address}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn-secondary w-full justify-start !py-2.5 text-sm"
-                >
-                  <MapIcon className="h-4 w-4" /> Ouvrir dans Maps
-                </a>
-                <a
-                  href={`https://citymapper.com/directions?endname=${address}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn-secondary w-full justify-start !py-2.5 text-sm"
-                >
-                  <Navigation className="h-4 w-4" /> Itinéraire CityMapper
-                </a>
+          {/* Colonne droite — Chat */}
+          <div className={`${mobileTab !== "chat" ? "hidden md:flex" : "flex"} flex-col`} style={{ height: "70vh" }}>
+            <div className="glass-card flex flex-col h-full">
+              <div className="border-b border-[var(--border)] px-5 py-4">
+                <h2 className="font-display text-lg font-bold">Chat du groupe</h2>
+                <p className="text-xs text-[var(--muted-text)]">{group.name}</p>
               </div>
 
-              <div className="mt-6 space-y-2 text-sm">
-                {[
-                  { label: "Quand", value: new Date(group.meeting_date).toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" }) },
-                  { label: "Lieu", value: group.location },
-                  { label: "Ville", value: group.city },
-                  { label: "Places", value: `${group.max_members - taken} restantes` },
-                ].map(({ label, value }) => (
-                  <div key={label} className="flex items-start justify-between gap-3 border-b border-[var(--border)] py-1.5 last:border-0">
-                    <span className="text-[var(--muted-text)]">{label}</span>
-                    <span className="text-right font-medium">{value}</span>
+              {isMember ? (
+                <>
+                  <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                    {messages.length === 0 ? (
+                      <div className="py-8 text-center text-sm text-[var(--muted-text)]">
+                        Sois le premier à écrire !
+                      </div>
+                    ) : (
+                      messages.map((m, i) => {
+                        const isMe = m.sender_id === currentUser.id;
+                        return (
+                          <div key={i} className={`flex items-end gap-2 ${isMe ? "justify-end" : ""}`}>
+                            {!isMe && <Avatar name={m.sender?.first_name ?? "?"} size={28} />}
+                            <div
+                              className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${isMe ? "text-white" : "bg-white/80"}`}
+                              style={isMe ? { background: "var(--gradient-primary)" } : undefined}
+                            >
+                              {!isMe && <p className="mb-0.5 text-xs font-semibold opacity-70">{m.sender?.first_name}</p>}
+                              {m.content}
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                    <div ref={chatEndRef} />
                   </div>
-                ))}
-              </div>
+                  <form
+                    className="flex items-center gap-2 border-t border-[var(--border)] p-3"
+                    onSubmit={(e) => { e.preventDefault(); sendMessage(); }}
+                  >
+                    <input
+                      value={draft}
+                      onChange={(e) => setDraft(e.target.value)}
+                      placeholder="Écris un message…"
+                      className="field !py-2.5"
+                    />
+                    <button className="btn-primary !p-3"><Send className="h-4 w-4" /></button>
+                  </form>
+                </>
+              ) : (
+                <div className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center bg-[var(--bg)]/40">
+                  <div className="rounded-full bg-[var(--border)] p-4">
+                    <Send className="h-6 w-6 text-[var(--muted-text)]" />
+                  </div>
+                  <div>
+                    <p className="font-display font-bold">Rejoins le groupe pour discuter</p>
+                    <p className="mt-1 text-sm text-[var(--muted-text)]">Le chat est réservé aux membres de ce groupe.</p>
+                  </div>
+                  <button onClick={handleJoinLeave} className="btn-primary">
+                    Rejoindre le groupe
+                  </button>
+                </div>
+              )}
             </div>
-          </aside>
+          </div>
         </div>
       </div>
     </PageShell>
