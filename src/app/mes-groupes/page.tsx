@@ -7,7 +7,7 @@ import { PageShell } from "@/components/Navbar";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { getMyActivitiesApi } from "@/lib/api";
 import { useToast } from "@/context/ToastContext";
-import { Activity, getCategoryOption } from "@/lib/data";
+import { Activity, getCategoryOption, getCategoryImage } from "@/lib/data";
 import { MapPin, Users, Calendar } from "lucide-react";
 
 function MesActivitesContent() {
@@ -42,9 +42,9 @@ function MesActivitesContent() {
               onClick={() => setActiveTab(t)}
               className="rounded-full px-5 py-2 text-sm font-medium transition"
               style={activeTab === t
-               ? { background: "var(--secondary-action)", color: "white" }
-               : { color: "var(--muted-text)" }
-                  }
+                ? { background: "var(--secondary-action)", color: "white" }
+                : { color: "var(--muted-text)" }
+              }
             >
               {t === "joined" ? `Rejointes (${joined.length})` : `Créées (${created.length})`}
             </button>
@@ -64,31 +64,42 @@ function MesActivitesContent() {
               const category = getCategoryOption(a.category);
               const cat = category
                 ? { color: category.color, label: category.shortLabel }
-                : { color: "#C4603A", label: "A" };
+                : { color: "#C4603A", label: a.category };
               const groupCount = a._count?.groups ?? 0;
               const memberCount = a._count?.activity_members ?? 0;
+              const img = getCategoryImage(a.category);
 
               return (
-                <div key={a.id} className="glass-card glass-card-hover flex flex-col items-stretch gap-4 p-5 sm:flex-row sm:items-center">
-                  <span
-                    className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-white font-display text-xl font-bold"
-                    style={{ background: cat.color }}
+                <div key={a.id} className="glass-card glass-card-hover overflow-hidden flex flex-col sm:flex-row sm:items-center">
+                  {/* Image catégorie en fond à gauche */}
+                  <div
+                    className="relative h-28 w-full shrink-0 sm:h-full sm:w-28"
+                    style={{ minHeight: 80 }}
                   >
-                    {cat.label[0]}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: cat.color }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={img} alt={cat.label} className="h-full w-full object-cover" style={{ minHeight: 80 }} />
+                    <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 60%)" }} />
+                    <span
+                      className="absolute bottom-2 left-2 rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
+                      style={{ background: cat.color }}
+                    >
                       {cat.label}
-                    </p>
-                    <h3 className="truncate font-display text-lg font-bold">{a.title}</h3>
-                    <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-[var(--muted-text)]">
-                      <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {a.city}</span>
-                      <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" /> {groupCount} sortie{groupCount !== 1 ? "s" : ""}</span>
-                      <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" /> {memberCount} membre{memberCount !== 1 ? "s" : ""}</span>
-                    </div>
+                    </span>
                   </div>
-                  <div className="flex shrink-0 gap-2">
-                    <Link href={`/activites/${a.id}`} className="btn-primary !py-2 text-sm">Voir</Link>
+
+                  {/* Infos */}
+                  <div className="flex flex-1 flex-col gap-3 p-4 sm:flex-row sm:items-center">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="truncate font-display text-lg font-bold">{a.title}</h3>
+                      <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-[var(--muted-text)]">
+                        <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {a.city}</span>
+                        <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" /> {groupCount} sortie{groupCount !== 1 ? "s" : ""}</span>
+                        <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" /> {memberCount} membre{memberCount !== 1 ? "s" : ""}</span>
+                      </div>
+                    </div>
+                    <div className="shrink-0">
+                      <Link href={`/activites/${a.id}`} className="btn-primary !py-2 text-sm">Voir</Link>
+                    </div>
                   </div>
                 </div>
               );

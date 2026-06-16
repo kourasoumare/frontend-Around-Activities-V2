@@ -171,7 +171,7 @@ function ConversationsContent() {
   return (
     <PageShell variant="chat">
       <div className="mx-auto max-w-7xl px-0 pt-4 md:px-8 md:pt-8">
-        <div className="glass-card overflow-hidden md:h-[calc(100vh-160px)]">
+        <div className={`glass-card overflow-hidden md:h-[calc(100vh-160px)] ${mobilePanel === "chat" ? "fixed inset-0 z-50 rounded-none md:relative md:inset-auto md:z-auto md:rounded-3xl" : ""}`}>
           <div className="grid h-full md:grid-cols-[320px_1fr]">
             {/* Sidebar */}
             <div className={`border-r border-[var(--border)] ${mobilePanel === "chat" ? "hidden md:block" : "block"}`}>
@@ -221,7 +221,7 @@ function ConversationsContent() {
             </div>
 
             {/* Chat panel */}
-            <div className={`flex flex-col ${mobilePanel === "list" ? "hidden md:flex" : "flex"}`}>
+            <div className={`flex flex-col ${mobilePanel === "list" ? "hidden md:flex" : "flex h-full"}`}>
               {!selectedChat ? (
                 <div className="grid flex-1 place-items-center text-sm text-[var(--muted-text)]">
                   Sélectionne une conversation
@@ -243,7 +243,7 @@ function ConversationsContent() {
                     </div>
                   </div>
 
-                  <div className="flex-1 space-y-3 overflow-y-auto p-5">
+                  <div className="flex-1 min-h-0 space-y-3 overflow-y-auto p-4">
                     {loadingMessages ? (
                       <div className="py-8 text-center text-sm text-[var(--muted-text)]">Chargement…</div>
                     ) : messages.length === 0 ? (
