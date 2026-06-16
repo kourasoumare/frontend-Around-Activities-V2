@@ -30,12 +30,18 @@ function CreateGroupForm() {
   });
   const [recurrent, setRecurrent] = useState(false);
   const [frequence, setFrequence] = useState<"weekly" | "biweekly" | "monthly">("weekly");
-  const [occurrences, setOccurrences] = useState(4);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Jour auto-détecté depuis la date choisie
-  const jourDetecte = form.date ? JOURS[new Date(form.date + "T12:00:00").getDay()] : null;
+  // Jour auto-détecté depuis la date choisie (index 0=Dim, 1=Lun...)
+  const [jourSelectionne, setJourSelectionne] = useState(1); // Lundi par défaut
+
+  // Mettre à jour le jour quand la date change
+  useEffect(() => {
+    if (form.date) {
+      setJourSelectionne(new Date(form.date + "T12:00:00").getDay());
+    }
+  }, [form.date]);
 
   useEffect(() => {
     if (activityId) {
@@ -84,9 +90,9 @@ function CreateGroupForm() {
         // Données récurrence
         is_recurring: recurrent,
         recurrence_frequency: recurrent ? frequence : null,
-        recurrence_count: recurrent ? occurrences : null,
+        recurrence_count: recurrent ? 52 : null, // 1 an max
       });
-      showToast(recurrent ? `Groupe créé avec ${occurrences} occurrences !` : "Groupe créé avec succès !", "success");
+      showToast("Groupe créé avec succès !", "success");
       const createdId = typeof group === "object" && group && "id" in group ? (group as { id?: number }).id : undefined;
       router.push(createdId ? `/groupes/${createdId}` : "/mes-groupes?tab=created");
     } catch (err) {
@@ -200,8 +206,8 @@ function CreateGroupForm() {
                   Sortie récurrente
                 </p>
                 <p style={{ fontSize: "0.78rem", color: "var(--text-3)" }}>
-                  {recurrent && jourDetecte
-                    ? `Se répète ${FREQUENCES.find(f => f.value === frequence)?.label.toLowerCase()} le ${jourDetecte}`
+                  {recurrent
+                    ? `Récurrent — ${FREQUENCES.find(f => f.value === frequence)?.label.toLowerCase()} le ${JOURS[jourSelectionne]}`
                     : "Répéter cette sortie automatiquement"}
                 </p>
               </div>
@@ -221,14 +227,7 @@ function CreateGroupForm() {
 
             {/* Options récurrence — visibles seulement si activé */}
             {recurrent && (
-              <div style={{ marginTop: "1rem", display: "flex", flexDirection: "column", gap: "0.75rem", padding: "1rem", background: "rgba(196,96,58,0.04)", borderRadius: "var(--r)", border: "1px solid rgba(196,96,58,0.12)" }}>
-
-                {/* Fréquence auto-détectée depuis la date */}
-                {jourDetecte && (
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem 0.75rem", background: "var(--tc-soft)", borderRadius: 8, fontSize: "0.82rem", color: "var(--tc-deep)", fontWeight: 600 }}>
-                     Le jour détecté est : <strong>{jourDetecte}</strong>
-                  </div>
-                )}
+              <div style={{ marginTop: "1rem", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", padding: "1rem", background: "rgba(196,96,58,0.04)", borderRadius: "var(--r)", border: "1px solid rgba(196,96,58,0.12)" }}>
 
                 {/* Select fréquence */}
                 <div>
@@ -240,40 +239,36 @@ function CreateGroupForm() {
                     style={{ cursor: "pointer" }}
                   >
                     {FREQUENCES.map(f => (
-                      <option key={f.value} value={f.value}>{f.label}{jourDetecte ? ` le ${jourDetecte}` : ""}</option>
+                      <option key={f.value} value={f.value}>{f.label}</option>
                     ))}
                   </select>
                 </div>
 
-                {/* Nombre d'occurrences */}
+                {/* Select jour */}
                 <div>
-                  <label className="form-label">NOMBRE DE FOIS</label>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                    <button type="button" onClick={() => setOccurrences(Math.max(2, occurrences - 1))}
-                      style={{ width: 32, height: 32, borderRadius: "50%", border: "1px solid var(--border)", background: "white", cursor: "pointer", fontSize: "1.1rem", display: "grid", placeItems: "center" }}>
-                      −
-                    </button>
-                    <span style={{ fontFamily: "var(--font-head)", fontSize: "1.2rem", fontWeight: 700, minWidth: 24, textAlign: "center" }}>{occurrences}</span>
-                    <button type="button" onClick={() => setOccurrences(Math.min(12, occurrences + 1))}
-                      style={{ width: 32, height: 32, borderRadius: "50%", border: "1px solid var(--border)", background: "white", cursor: "pointer", fontSize: "1.1rem", display: "grid", placeItems: "center" }}>
-                      +
-                    </button>
-                    <span style={{ fontSize: "0.82rem", color: "var(--text-3)" }}>occurrences</span>
-                  </div>
+                  <label className="form-label">JOUR</label>
+                  <select
+                    className="form-input"
+                    value={jourSelectionne}
+                    onChange={(e) => setJourSelectionne(Number(e.target.value))}
+                    style={{ cursor: "pointer" }}
+                  >
+                    {JOURS.map((jour, i) => (
+                      <option key={i} value={i}>{jour}</option>
+                    ))}
+                  </select>
                 </div>
 
-                {/* Récap visuel */}
-                {jourDetecte && (
-                  <div style={{ fontSize: "0.82rem", color: "var(--text-2)", padding: "0.5rem 0.75rem", background: "white", borderRadius: 8, border: "1px solid var(--border)" }}>
-                    🔁 Ce groupe se répétera <strong>{occurrences} fois</strong> — {FREQUENCES.find(f => f.value === frequence)?.label.toLowerCase()} le <strong>{jourDetecte}</strong> à <strong>{form.time || "12:00"}</strong>
-                  </div>
-                )}
+                {/* Récap */}
+                <div style={{ gridColumn: "1 / -1", fontSize: "0.82rem", color: "var(--text-2)", padding: "0.5rem 0.75rem", background: "white", borderRadius: 8, border: "1px solid var(--border)" }}>
+                  🔁 Récurrent — {FREQUENCES.find(f => f.value === frequence)?.label.toLowerCase()} le <strong>{JOURS[jourSelectionne]}</strong> à <strong>{form.time || "12:00"}</strong>
+                </div>
               </div>
             )}
           </div>
 
           <button type="submit" className="btn btn-primary btn-block btn-lg" disabled={loading} style={{ marginTop: "0.5rem" }}>
-            {loading ? "Création en cours…" : recurrent ? `Créer ${occurrences} sorties récurrentes →` : "Créer le groupe →"}
+            {loading ? "Création en cours…" : "Créer le groupe →"}
           </button>
         </form>
       </div>
