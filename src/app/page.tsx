@@ -315,6 +315,7 @@ function ScrollStoryDesktop() {
               );
             })}
 
+            {/* Dots */}
             <div className="absolute -bottom-4 left-0 flex gap-2">
               {STEPS.map((_, i) => (
                 <span
@@ -327,6 +328,17 @@ function ScrollStoryDesktop() {
                   }}
                 />
               ))}
+            </div>
+
+            {/* Bouton S'inscrire — fixe, indépendant des steps */}
+            <div className="absolute -bottom-20 left-0">
+              <a
+                href="#top"
+                onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                className="btn-primary inline-flex items-center gap-2 !px-8 !py-3.5 text-base"
+              >
+                S&apos;inscrire <span>→</span>
+              </a>
             </div>
           </div>
 
