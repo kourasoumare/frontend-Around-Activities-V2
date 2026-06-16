@@ -210,20 +210,35 @@ function ScrollStoryMobile() {
             <p className="mt-3 text-sm leading-relaxed text-[var(--muted-text)]">{s.text}</p>
           </div>
         ))}
-        <div className="mt-6 flex items-center justify-center gap-3">
-          {STEPS.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setActive(i)}
-              className="rounded-full"
-              style={{
-                width: i === active ? 32 : 12,
-                height: 6,
-                background: i === active ? "var(--primary)" : "rgba(196,96,58,0.25)",
-                transition: "width 400ms cubic-bezier(0.22, 1, 0.36, 1), background 400ms ease",
-              }}
-            />
-          ))}
+        <div className="mt-6 flex items-center justify-center gap-4">
+          <button
+            onClick={() => setActive((a) => Math.max(0, a - 1))}
+            disabled={active === 0}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border)] text-[var(--muted-text)] disabled:opacity-30 text-lg"
+          >←</button>
+          <div className="flex items-center gap-2">
+            {STEPS.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setActive(i)}
+                style={{
+                  width: i === active ? 32 : 12,
+                  height: 8,
+                  borderRadius: 999,
+                  background: i === active ? "var(--primary)" : "rgba(196,96,58,0.25)",
+                  transition: "width 400ms cubic-bezier(0.22, 1, 0.36, 1), background 400ms ease",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: 0,
+                }}
+              />
+            ))}
+          </div>
+          <button
+            onClick={() => setActive((a) => Math.min(STEPS.length - 1, a + 1))}
+            disabled={active === STEPS.length - 1}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border)] text-[var(--muted-text)] disabled:opacity-30 text-lg"
+          >→</button>
         </div>
       </div>
     </div>
