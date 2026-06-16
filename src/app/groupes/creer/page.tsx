@@ -233,10 +233,22 @@ function CreateGroupForm() {
                 <div>
                   <label className="form-label">FRÉQUENCE</label>
                   <select
-                    className="form-input"
                     value={frequence}
                     onChange={(e) => setFrequence(e.target.value as typeof frequence)}
-                    style={{ cursor: "pointer" }}
+                    style={{
+                      width: "100%",
+                      padding: "0.8rem 1rem",
+                      fontSize: "0.95rem",
+                      fontFamily: "var(--font-sans)",
+                      background: "white",
+                      border: "1px solid var(--border)",
+                      borderRadius: "0.85rem",
+                      color: "var(--foreground)",
+                      cursor: "pointer",
+                      appearance: "auto",
+                      WebkitAppearance: "menulist",
+                      outline: "none",
+                    }}
                   >
                     {FREQUENCES.map(f => (
                       <option key={f.value} value={f.value}>{f.label}</option>
@@ -248,10 +260,22 @@ function CreateGroupForm() {
                 <div>
                   <label className="form-label">JOUR</label>
                   <select
-                    className="form-input"
                     value={jourSelectionne}
                     onChange={(e) => setJourSelectionne(Number(e.target.value))}
-                    style={{ cursor: "pointer" }}
+                    style={{
+                      width: "100%",
+                      padding: "0.8rem 1rem",
+                      fontSize: "0.95rem",
+                      fontFamily: "var(--font-sans)",
+                      background: "white",
+                      border: "1px solid rgba(196,96,58,0.4)",
+                      borderRadius: "0.85rem",
+                      color: "var(--foreground)",
+                      cursor: "pointer",
+                      appearance: "auto",
+                      WebkitAppearance: "menulist",
+                      outline: "none",
+                    }}
                   >
                     {JOURS.map((jour, i) => (
                       <option key={i} value={i}>{jour}</option>
