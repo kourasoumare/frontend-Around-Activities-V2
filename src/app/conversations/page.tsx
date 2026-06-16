@@ -171,7 +171,7 @@ function ConversationsContent() {
   return (
     <PageShell variant="chat">
       <div className="mx-auto max-w-7xl px-0 pt-4 md:px-8 md:pt-8">
-        <div className={`glass-card overflow-hidden md:h-[calc(100vh-160px)] ${mobilePanel === "chat" ? "fixed inset-0 z-50 rounded-none md:relative md:inset-auto md:z-auto md:rounded-3xl" : ""}`}>
+        <div className={`glass-card overflow-hidden md:h-[calc(100vh-160px)] ${mobilePanel === "chat" ? "fixed inset-0 z-50 rounded-none flex flex-col md:relative md:inset-auto md:z-auto md:rounded-3xl md:flex-none" : ""}`}>
           <div className="grid h-full md:grid-cols-[320px_1fr]">
             {/* Sidebar */}
             <div className={`border-r border-[var(--border)] ${mobilePanel === "chat" ? "hidden md:block" : "block"}`}>
@@ -270,6 +270,7 @@ function ConversationsContent() {
 
                   <form
                     className="flex items-center gap-2 border-t border-[var(--border)] p-3"
+                    style={{ paddingBottom: "calc(0.75rem + 64px)", flexShrink: 0 }}
                     onSubmit={(e) => { e.preventDefault(); handleSend(); }}
                   >
                     <input
