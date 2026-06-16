@@ -413,6 +413,8 @@
   font-family: var(--font-sans);
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  appearance: auto;
+  -webkit-appearance: auto;
 }
 
 .form-input::placeholder {
