@@ -40,50 +40,52 @@ function HomeContent() {
   return (
     <PageShell variant="home">
       <div className="mx-auto max-w-7xl px-4 pt-8 md:px-8">
-        {/* Greeting */}
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="text-sm text-[var(--muted-text)]">Bienvenue{currentUser?.city ? ` à ${currentUser.city}` : ""}</p>
-            <h1 className="font-display text-4xl font-bold sm:text-5xl">
-              Salut <span className="text-grad">{firstName}</span>
-            </h1>
-            <p className="mt-2 max-w-xl text-[var(--muted-text)]">Voici les communautés qui bougent près de toi.</p>
+
+        {/* Greeting — juste le prénom */}
+        <h1 className="font-display text-4xl font-bold sm:text-5xl">
+          Salut <span className="text-grad">{firstName}</span>
+        </h1>
+
+        {/* Barre de recherche — ~33% sur desktop, pleine largeur sur mobile */}
+        <div className="mt-6">
+          <div className="w-full md:w-1/3">
+            <SearchBar value={q} onChange={setQ} />
           </div>
         </div>
 
-        {/* Search + Create */}
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <SearchBar value={q} onChange={setQ} />
-          <CreateButton href="/activites/creer" label="Créer une activité" />
-        </div>
-
-        {/* Categories */}
-        <div className="-mx-4 mt-6 overflow-x-auto px-4 pb-2">
-          <div className="flex min-w-max gap-2">
-            <button
-              onClick={() => setActiveCat(null)}
-              className={`pill whitespace-nowrap ${activeCat === null ? "pill-active" : ""}`}
-              style={activeCat === null ? { background: "var(--secondary-action)", color: "white" } : undefined}
-            >
-              Toutes les catégories
-            </button>
-            {CATEGORY_OPTIONS.map((c) => {
-              const on = activeCat === c.id;
-              return (
-                <button
-                  key={c.id}
-                  onClick={() => setActiveCat(on ? null : c.id)}
-                  className="pill whitespace-nowrap"
-                  style={on
-                       ? { background: "var(--secondary-action)", color: "white", borderColor: "transparent" }
-                       : { borderColor: c.color, color: c.color }
-                  }
-                >
-                  <span className="h-2 w-2 rounded-full" style={{ background: on ? "white" : c.color }} />
-                  {c.shortLabel}
-                </button>
-              );
-            })}
+        {/* Catégories + bouton créer sur la même ligne */}
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <div className="-mx-4 overflow-x-auto px-4 pb-1 flex-1">
+            <div className="flex min-w-max gap-2">
+              <button
+                onClick={() => setActiveCat(null)}
+                className={`pill whitespace-nowrap ${activeCat === null ? "pill-active" : ""}`}
+                style={activeCat === null ? { background: "var(--secondary-action)", color: "white" } : undefined}
+              >
+                Toutes les catégories
+              </button>
+              {CATEGORY_OPTIONS.map((c) => {
+                const on = activeCat === c.id;
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => setActiveCat(on ? null : c.id)}
+                    className="pill whitespace-nowrap"
+                    style={on
+                      ? { background: "var(--secondary-action)", color: "white", borderColor: "transparent" }
+                      : { borderColor: c.color, color: c.color }
+                    }
+                  >
+                    <span className="h-2 w-2 rounded-full" style={{ background: on ? "white" : c.color }} />
+                    {c.shortLabel}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          {/* Bouton créer — toujours visible à droite */}
+          <div className="shrink-0">
+            <CreateButton href="/activites/creer" label="Créer une activité" />
           </div>
         </div>
 
@@ -92,7 +94,7 @@ function HomeContent() {
           <div className="mt-12 text-center text-sm text-[var(--muted-text)]">Chargement…</div>
         ) : (
           <>
-            <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {filtered.map((a) => <ActivityCard key={a.id} activity={a} />)}
             </div>
             {filtered.length === 0 && (

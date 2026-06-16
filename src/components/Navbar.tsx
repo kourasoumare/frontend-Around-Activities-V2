@@ -22,15 +22,12 @@ export function Avatar({ name, size = 40, color }: { name: string; size?: number
 /* ── Logo ── */
 export function Logo() {
   return (
-    <span
-      className="grid h-9 w-9 place-items-center rounded-2xl shadow-[0_6px_16px_-4px_rgba(196,96,58,0.5)]"
-      style={{ background: "var(--gradient-primary)" }}
-    >
-      <svg viewBox="0 0 24 24" className="h-5 w-5 text-white" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="8" />
-        <circle cx="12" cy="12" r="3" />
-      </svg>
-    </span>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/logov2.png"
+      alt="Around Activities"
+      className="h-9 w-9 object-contain"
+    />
   );
 }
 
