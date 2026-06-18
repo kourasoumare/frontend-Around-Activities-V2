@@ -9,7 +9,7 @@ import { INTERESTS } from "@/lib/data";
 import { ArrowRight, ArrowLeft, Check } from "lucide-react";
 
 const CITIES = ["Paris", "Lyon", "Bordeaux", "Marseille", "Toulouse", "Nantes", "Lille", "Strasbourg", "Rennes", "Montpellier"];
-const LANGUAGES = ["Français", "Anglais", "Arabe", "Bambara", "Espagnol", "Portugais", "Wolof", "Mandarin", "Hindi", "Allemand", "Italien", "Turc"];
+const LANGUAGES = ["Français", "Anglais", "Arabe", "Bambara", "Espagnol", "Portugais", "Wolof", "Mandarin", "Hindi", "Allemand", "Italien", "Turc", "Wolof", "Peulh", "Soninké", "Chinoi"];
 
 function OnboardingContent() {
   const router = useRouter();

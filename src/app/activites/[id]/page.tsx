@@ -297,14 +297,14 @@ function ActivityDetailContent() {
                 {isMember ? (
                    <Link
                     href={`/groupes/creer?activityId=${id}`}
-    className="ml-auto flex items-center gap-1 text-sm font-medium text-[var(--muted-text)] hover:text-[var(--primary)]"
+    className="btn-primary w-full !py-3"
   >
-    <Sparkles className="h-3.5 w-3.5" /> Proposer une sortie
+    <Sparkles /> Proposer une sortie
   </Link>
 ) : (
   <button
     onClick={() => showToast("Rejoins la communauté pour proposer une sortie.", "error")}
-    className="ml-auto flex items-center gap-1 text-sm font-medium text-[var(--muted-text)]"
+    className="btn-primary w-full !py-3"
   >
     <Sparkles className="h-3.5 w-3.5" /> Proposer une sortie
   </button>
