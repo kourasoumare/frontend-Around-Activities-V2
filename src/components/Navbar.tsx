@@ -2,9 +2,84 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, Plus, MessageCircle, User as UserIcon, Compass, Home, LogOut, UserPlus } from "lucide-react";
+import { Search, Plus, MessageCircle, User as UserIcon, Compass, Home, LogOut, UserPlus, Bell, X } from "lucide-react";
 import { useSocketContext } from "@/context/SocketContext";
+import { useState, useEffect, useRef } from "react";
 import type { ReactNode } from "react";
+
+const API = process.env.NEXT_PUBLIC_API_URL;
+
+/* ── Types ── */
+type Notification = {
+  id: number;
+  type: string;
+  content: string;
+  link: string | null;
+  created_at: string;
+};
+
+/* ── Toast ── */
+function NotificationToast({ notif, onClose }: { notif: Notification; onClose: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onClose, 4000);
+    return () => clearTimeout(t);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed top-5 right-5 z-50 flex items-start gap-3 rounded-2xl px-4 py-3 shadow-lg"
+      style={{ background: "var(--card)", border: "1px solid var(--border)", maxWidth: 320, backdropFilter: "blur(14px)" }}
+    >
+      <Bell className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "var(--primary)" }} />
+      <p className="text-sm flex-1" style={{ color: "var(--foreground)" }}>{notif.content}</p>
+      <button onClick={onClose} className="shrink-0">
+        <X className="h-4 w-4" style={{ color: "var(--muted-text)" }} />
+      </button>
+    </div>
+  );
+}
+
+/* ── Hook notifications ── */
+function useNotifications() {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [toast, setToast] = useState<Notification | null>(null);
+  const { socket } = useSocketContext();
+
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  // Charger les notifications au démarrage
+  useEffect(() => {
+    if (!token) return;
+    fetch(`${API}/api/notifications`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then((r) => r.json())
+      .then((data) => Array.isArray(data) ? setNotifications(data) : null)
+      .catch(() => null);
+  }, [token]);
+
+  // Écouter les nouvelles notifications en temps réel
+  useEffect(() => {
+    if (!socket) return;
+    socket.on("new_notification", (notif: Notification) => {
+      setNotifications((prev) => [notif, ...prev]);
+      setToast(notif);
+    });
+    return () => { socket.off("new_notification"); };
+  }, [socket]);
+
+  // Supprimer une notification (clic dessus)
+  async function deleteNotification(id: number) {
+    if (!token) return;
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    await fetch(`${API}/api/notifications/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` }
+    }).catch(() => null);
+  }
+
+  return { notifications, toast, setToast, deleteNotification };
+}
 
 /* ── Avatar ── */
 export function Avatar({ name, size = 40, color }: { name: string; size?: number; color?: string }) {
@@ -103,6 +178,93 @@ function NavLink({ href, children }: { href: string; children: ReactNode }) {
   );
 }
 
+/* ── Cloche avec dropdown ── */
+function NotificationBell() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const { notifications, toast, setToast, deleteNotification } = useNotifications();
+  const unread = notifications.length;
+
+  // Fermer le dropdown si clic en dehors
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  async function handleNotifClick(notif: Notification) {
+    await deleteNotification(notif.id);
+    setOpen(false);
+    if (notif.link) router.push(notif.link);
+  }
+
+  return (
+    <>
+      {/* Toast */}
+      {toast && <NotificationToast notif={toast} onClose={() => setToast(null)} />}
+
+      {/* Cloche */}
+      <div ref={ref} className="relative">
+        <button
+          onClick={() => setOpen((o) => !o)}
+          className="relative flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-white/60"
+        >
+          <Bell className="h-5 w-5" style={{ color: "var(--muted-text)" }} />
+          {unread > 0 && (
+            <span
+              className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white"
+              style={{ background: "var(--primary)" }}
+            >
+              {unread > 9 ? "9+" : unread}
+            </span>
+          )}
+        </button>
+
+        {/* Dropdown */}
+        {open && (
+          <div
+            className="absolute right-0 top-12 w-80 rounded-2xl shadow-lg overflow-hidden"
+            style={{ background: "var(--card)", border: "1px solid var(--border)", backdropFilter: "blur(14px)" }}
+          >
+            <div className="border-b px-4 py-3" style={{ borderColor: "var(--border)" }}>
+              <h3 className="font-display font-bold text-sm">Notifications</h3>
+            </div>
+            {notifications.length === 0 ? (
+              <div className="px-4 py-6 text-center text-sm" style={{ color: "var(--muted-text)" }}>
+                Aucune notification
+              </div>
+            ) : (
+              <div className="max-h-80 overflow-y-auto">
+                {notifications.map((n) => (
+                  <button
+                    key={n.id}
+                    onClick={() => handleNotifClick(n)}
+                    className="flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-white/60"
+                    style={{ borderBottom: "1px solid var(--border)" }}
+                  >
+                    <Bell className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "var(--primary)" }} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm" style={{ color: "var(--foreground)" }}>{n.content}</p>
+                      <p className="text-xs mt-0.5" style={{ color: "var(--muted-text)" }}>
+                        {new Date(n.created_at).toLocaleString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
 export function AppNavbar() {
   const router = useRouter();
   const { pendingRequests } = useSocketContext();
@@ -148,19 +310,12 @@ export function AppNavbar() {
                   )}
                 </span>
               </NavLink>
-              <NavLink href="/conversations">
-                <span className="relative">
-                  Conversations
-                  {notifCount > 0 && (
-                    <span className="absolute -right-1.5 -top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full text-[9px] font-bold text-white" style={{ background: "var(--primary)" }}>
-                      {notifCount}
-                    </span>
-                  )}
-                </span>
-              </NavLink>
+              <NavLink href="/conversations">Conversations</NavLink>
               <NavLink href={`/profil/${user?.id ?? ""}`}>Profil</NavLink>
             </nav>
             <div className="flex items-center gap-2">
+              {/* Cloche notifications */}
+              <NotificationBell />
               <Link
                 href={`/profil/${user?.id ?? ""}`}
                 className="hidden h-9 w-9 items-center justify-center rounded-full text-sm font-semibold text-[var(--primary-foreground)] md:flex"

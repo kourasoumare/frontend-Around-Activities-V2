@@ -63,9 +63,12 @@ function ConversationsContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Auto-select from URL param
-  useEffect(() => {
+ // Auto-select from URL param
+useEffect(() => {
     const userId = searchParams.get("userId");
+    const groupId = searchParams.get("group");
+    const activityId = searchParams.get("activity");
+
     if (userId && friends.length > 0) {
       const friend = friends.find((f) => {
         const frd = (f as any).friend ?? f;
@@ -77,7 +80,23 @@ function ConversationsContent() {
         setMobilePanel("chat");
       }
     }
-  }, [searchParams, friends]);
+
+    if (groupId && groups.length > 0) {
+      const group = groups.find((g) => String(g.id) === groupId);
+      if (group) {
+        setSelectedChat({ type: "group", id: group.id, name: group.name });
+        setMobilePanel("chat");
+      }
+    }
+
+    if (activityId && activities.length > 0) {
+      const activity = activities.find((a) => String(a.id) === activityId);
+      if (activity) {
+        setSelectedChat({ type: "activity", id: activity.id, name: activity.title });
+        setMobilePanel("chat");
+      }
+    }
+  }, [searchParams, friends, groups, activities]);
 
   useEffect(() => {
     if (!selectedChat) return;
