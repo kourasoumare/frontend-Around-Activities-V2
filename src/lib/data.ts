@@ -158,7 +158,8 @@ export const INTERESTS = [
   "Bien-être", "Méditation",
   "Tech", "Gaming", "Intelligence artificielle",
   "Nature", "Randonnée", "Voyages",
-  "Lecture", "Jeux de société", "Échange linguistique", "Rencontres sociales",
+  "Lecture", "Jeux de société", "Échange linguistique", "Rencontres sociales","Basketball","Manga",
+  
 ];
 
 export const ACTIVITIES: Activity[] = [
